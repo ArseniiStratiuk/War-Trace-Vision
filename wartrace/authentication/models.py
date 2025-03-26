@@ -1,32 +1,34 @@
 from django.db import models
-from django.contrib.auth.models import User
-import json
+from django.contrib.auth.models import AbstractUser
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    CATEGORY_CHOICES = [
-        ('soldier', 'Soldier'),
-        ('volunteer', 'Volunteer'),
+
+class User(AbstractUser):
+    bio = models.TextField(blank=True)
+    is_verified = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+
+
+class Role(models.Model):
+    SOLDIER = 'soldier'
+    VOLUNTEER = 'volunteer'
+    ANALYST = 'analyst'
+    ADMIN = 'admin'
+
+    ROLE_CHOICES = [
+        (SOLDIER, 'Soldier'),
+        (VOLUNTEER, 'Volunteer'),
+        (ANALYST, 'Analyst'),
+        (ADMIN, 'Administrator'),
     ]
-    category = models.CharField(max_length=9, choices=CATEGORY_CHOICES, blank=True, null=True)
-    request_data = models.TextField(blank=True, null=True)
-    contacts = models.TextField(blank=True, null=True)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='role')
+    role_type = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user.username} - {self.get_role_type_display()}"
 
-    def get_request_data(self):
-        if self.request_data:
-            return json.loads(self.request_data)
-        return {}
-
-    def set_request_data(self, data):
-        self.request_data = json.dumps(data)
-
-    def get_contacts(self):
-        if self.contacts:
-            return json.loads(self.contacts)
-        return {}
-
-    def set_contacts(self, data):
-        self.contacts = json.dumps(data)
+    def get_role_type_display(self):
+        return self.role_type.capitalize()
