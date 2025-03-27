@@ -1,0 +1,494 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.toolbar {
+    position: absolute;
+    left: 15px;
+    top: 80px;
+    bottom: 30px;
+    width: 60px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    overflow: hidden;
+    transition: background-color 0.3s;
+}
+
+.toolbar button {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+    border: none;
+    background-color: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.toolbar button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.toolbar button svg {
+    width: 24px;
+    height: 24px;
+}
+
+.toolbar-divider {
+    width: 40px;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.2);
+    margin: 5px 0 15px 0;
+}
+
+.menu-button {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 60px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+}
+
+.menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.map-controls {
+    position: absolute;
+    right: 15px;
+    bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.map-controls button {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+}
+
+.map-controls button:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.tooltip {
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+    width: 250px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.tooltip p {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.tooltip .confidence {
+    font-weight: bold;
+    color: #d32f2f;
+}
+
+.tooltip .date {
+    font-style: italic;
+}
+
+.tooltip .source {
+    color: #333;
+    margin-top: 5px;
+}
+
+.user-location {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #4285F4;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3);
+}
+
+/* Dark mode styles using the filter approach for map tiles */
+body.dark-mode {
+    background-color: #383838;
+    color: #f8f8f8;
+}
+
+body.dark-mode .toolbar,
+body.dark-mode .menu-button,
+body.dark-mode .map-controls button {
+    background-color: rgba(70, 70, 70, 0.85);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .toolbar button:hover,
+body.dark-mode .menu-button:hover,
+body.dark-mode .map-controls button:hover {
+    background-color: rgba(90, 90, 90, 0.9);
+}
+
+body.dark-mode svg {
+    fill: #f8f8f8;
+}
+
+body.dark-mode .toolbar-divider {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .tooltip {
+    background-color: #4a4a4a;
+    color: #f8f8f8;
+}
+
+body.dark-mode .tooltip p {
+    color: #e0e0e0;
+}
+
+body.dark-mode .tooltip .confidence {
+    color: #ff6b6b;
+}
+
+body.dark-mode .user-location {
+    border: 3px solid #555;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.5);
+}
+
+/* CSS filter for dark mode map tiles */
+body.dark-mode .leaflet-layer, 
+body.dark-mode .leaflet-control-zoom-in, 
+body.dark-mode .leaflet-control-zoom-out, 
+body.dark-mode .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Keep popups and markers normal in dark mode */
+body.dark-mode .leaflet-popup,
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip,
+body.dark-mode .leaflet-marker-icon,
+body.dark-mode .leaflet-marker-shadow {
+    filter: none !important;
+}
+
+/* Hide default Leaflet zoom control */
+.leaflet-top.leaflet-left {
+    display: none;
+}
+
+/* Classification markers */
+.marker-infrastructure {
+    background-color: #E57373;
+    color: white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+}
+
+.marker-military {
+    background-color: #7B1FA2;
+    color: white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+}
+
+.marker-hazard {
+    background-color: #FFA000;
+    color: white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+}
+
+.marker-residential {
+    background-color: #388E3C;
+    color: white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+}
+
+/* Status indicators */
+.status-verified {
+    background-color: #388E3C;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.status-unverified {
+    background-color: #FFA000;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.status-ai-detected {
+    background-color: #2196F3;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+/* Legend */
+.map-legend {
+    position: absolute;
+    bottom: 30px;
+    left: 90px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    display: none;
+}
+
+body.dark-mode .map-legend {
+    background-color: rgba(70, 70, 70, 0.9);
+    color: #f8f8f8;
+}
+
+.map-legend h4 {
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.legend-text {
+    font-size: 11px;
+}
+
+.leaflet-tile-container img {
+    border: none !important;
+}
+
+/* App header */
+.app-header {
+    position: absolute;
+    top: 15px;
+    left: 85px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.app-header h1 {
+    font-size: 16px;
+    margin-right: 15px;
+}
+
+.app-header .status {
+    font-size: 12px;
+    background-color: #388E3C;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+body.dark-mode .app-header {
+    background-color: rgba(70, 70, 70, 0.85);
+}
+
+/* AI analysis panel */
+.ai-analysis-panel {
+    position: absolute;
+    top: 75px;
+    right: 15px;
+    width: 300px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+    overflow: hidden;
+    display: none;
+}
+
+.ai-analysis-header {
+    padding: 10px 15px;
+    background-color: #2196F3;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-analysis-header button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.ai-analysis-content {
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ai-analysis-item {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.ai-analysis-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.ai-analysis-item h4 {
+    font-size: 13px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.ai-analysis-item p {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.ai-detection-score {
+    margin-left: auto;
+    background-color: #E57373;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+body.dark-mode .ai-analysis-panel {
+    background-color: rgba(70, 70, 70, 0.9);
+}
+
+body.dark-mode .ai-analysis-item {
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .ai-analysis-item p {
+    color: #ddd;
+}
+
+.tooltip .truncated-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px; /* Adjust based on tooltip width */
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+body.dark-mode .tooltip .truncated-text {
+    color: #e0e0e0;
+}
+
+/* Optional: Add hover effect to show full text on hover */
+.tooltip p[title]:hover {
+    position: relative;
+}
+
+.tooltip p[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    white-space: normal;
+    max-width: 250px;
+}
+
+body.dark-mode .tooltip p[title]:hover::after {
+    background: rgba(60, 60, 60, 0.95);
+    color: #f8f8f8;
+}

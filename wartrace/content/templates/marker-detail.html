@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Trace Vision - Detail View</title>
+  {% load static %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="{% static 'css/map.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/marker-detail.css' %}" />
+</head>
+<body>
+  <div id="mini-map"></div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <h1>War Trace Vision</h1>
+    <div class="status">Live • Analyzing</div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-button">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </div>
+
+  <!-- Detail Content Panel -->
+  <div class="detail-panel">
+    <div class="detail-header">
+      <h2 id="marker-title">Collapsed Bridge</h2>
+      <div class="detail-header-badges">
+        <span class="status-verified" id="verification-status">Verified</span>
+        <span class="confidence-badge" id="confidence-score">97%</span>
+      </div>
+    </div>
+
+    <div class="detail-content">
+      <div class="location-date-container">
+        <div class="detail-location">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span id="marker-coordinates">48.391, 38.209</span>
+        </div>
+        <div class="detail-date">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+          </svg>
+          <span id="marker-date">2024-09-15</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Description</h3>
+        <p id="marker-description">Main bridge over river destroyed. Concrete support columns have collapsed on the eastern side, causing the main span to fall into the water. This has cut off direct access between the northern and southern parts of the settlement.</p>
+      </div>
+
+      <div class="detail-section">
+        <h3>Category</h3>
+        <div class="category-badge" id="marker-category">
+          <div class="category-icon infrastructure"></div>
+          <span>Infrastructure Damage</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Source</h3>
+        <p id="marker-source">Drone footage + structural analysis</p>
+      </div>
+
+      <div class="detail-section">
+        <h3>AI Analysis</h3>
+        <div class="ai-analysis-result">
+          <div class="ai-analysis-item">
+            <h4>Structure Classification <span class="ai-detection-score">97%</span></h4>
+            <p>Bridge infrastructure with severe damage</p>
+          </div>
+          <div class="ai-analysis-item">
+            <h4>Damage Assessment <span class="ai-detection-score">95%</span></h4>
+            <p>Complete structural failure detected</p>
+            <p>Estimated collapse area: 85m²</p>
+          </div>
+          <div class="ai-analysis-item">
+            <h4>Impact Analysis <span class="ai-detection-score">92%</span></h4>
+            <p>Critical transportation route severed</p>
+            <p>Debris detected in waterway</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Additional Media</h3>
+        <div class="media-gallery">
+          <div class="media-item">
+            <div class="media-placeholder">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </div>
+            <span>Drone footage (09/15)</span>
+          </div>
+          <div class="media-item">
+            <div class="media-placeholder">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </div>
+            <span>Satellite image (09/16)</span>
+          </div>
+          <button class="add-media-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Add Media
+          </button>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="comments-header">
+          <h3>Comments (3)</h3>
+          <button class="sort-comments-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+            </svg>
+            Sort
+          </button>
+        </div>
+        <div class="comments-list">
+          <div class="comment">
+            <div class="comment-header">
+              <span class="comment-author">DataAnalyst42</span>
+              <span class="comment-date">2024-09-16</span>
+            </div>
+            <p class="comment-text">Based on the structural analysis, this appears to be damage from explosive ordnance rather than natural collapse. Note the pattern of debris dispersion.</p>
+            <div class="comment-actions">
+              <button class="comment-reply-btn">Reply</button>
+              <button class="comment-upvote-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                </svg>
+                12
+              </button>
+            </div>
+          </div>
+          <div class="comment">
+            <div class="comment-header">
+              <span class="comment-author">LocalObserver</span>
+              <span class="comment-date">2024-09-17</span>
+            </div>
+            <p class="comment-text">I can confirm this bridge was intact until September 14th. The destruction occurred during nighttime hours and was followed by heavy vehicle movements in the area.</p>
+            <div class="comment-actions">
+              <button class="comment-reply-btn">Reply</button>
+              <button class="comment-upvote-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                </svg>
+                8
+              </button>
+            </div>
+          </div>
+          <div class="comment">
+            <div class="comment-header">
+              <span class="comment-author">EngineerPRO</span>
+              <span class="comment-date">2024-09-18</span>
+              <span class="verified-badge">Expert</span>
+            </div>
+            <p class="comment-text">From the structural perspective, this is a complete failure of a reinforced concrete beam bridge. The main span has fully detached from its eastern support. Rebuilding will require complete reconstruction rather than repair.</p>
+            <div class="comment-actions">
+              <button class="comment-reply-btn">Reply</button>
+              <button class="comment-upvote-btn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                </svg>
+                15
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="comment-form">
+          <textarea placeholder="Add a comment..."></textarea>
+          <div class="comment-form-actions">
+            <button class="attach-btn">
+              <svg viewBox="0 0 24 24">
+                <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+              </svg>
+            </button>
+            <button class="submit-comment-btn">Post Comment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="action-btn edit-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        Edit
+      </button>
+      <button class="action-btn verify-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        Verify
+      </button>
+      <button class="action-btn share-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+        </svg>
+        Share
+      </button>
+      <button class="action-btn report-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.73 3H8.27L3 8.27v7.46L8.27 21h7.46L21 15.73V8.27L15.73 3zM12 17.3c-.72 0-1.3-.58-1.3-1.3 0-.72.58-1.3 1.3-1.3.72 0 1.3.58 1.3 1.3 0 .72-.58 1.3-1.3 1.3zm1-4.3h-2V7h2v6z"/>
+        </svg>
+        Report
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    // Initialize mini map
+    const miniMap = L.map('mini-map', {
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false
+    }).setView([48.391, 38.209], 15);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors | War Trace Vision',
+      maxZoom: 19
+    }).addTo(miniMap);
+    
+    // Add marker to mini map
+    const markerIcon = L.divIcon({
+      className: 'marker-infrastructure',
+      iconSize: [12, 12]
+    });
+    
+    L.marker([48.391, 38.209], {
+      icon: markerIcon
+    }).addTo(miniMap);
+    
+    // Handle back button
+    document.querySelector('.back-button').addEventListener('click', function() {
+      // Normally we would navigate back, but for this demo just alert
+      alert("This would navigate back to the main map view");
+    });
+    
+    // Handle action buttons
+    document.querySelector('.edit-btn').addEventListener('click', function() {
+      alert("This would open an edit form for this marker");
+    });
+    
+    document.querySelector('.verify-btn').addEventListener('click', function() {
+      alert("This would submit a verification for this marker");
+    });
+    
+    document.querySelector('.share-btn').addEventListener('click', function() {
+      alert("This would open sharing options for this marker");
+    });
+    
+    document.querySelector('.report-btn').addEventListener('click', function() {
+      alert("This would open a report form for this marker");
+    });
+    
+    // Handle comment submission
+    document.querySelector('.submit-comment-btn').addEventListener('click', function() {
+      const commentText = document.querySelector('.comment-form textarea').value;
+      if (commentText.trim()) {
+        alert(`Comment would be submitted: "${commentText}"`);
+        document.querySelector('.comment-form textarea').value = '';
+      } else {
+        alert("Please enter a comment");
+      }
+    });
+    
+    // Handle attach button
+    document.querySelector('.attach-btn').addEventListener('click', function() {
+      alert("This would open file attachment options");
+    });
+    
+    // Handle add media button
+    document.querySelector('.add-media-btn').addEventListener('click', function() {
+      alert("This would open media upload options");
+    });
+    
+    // Handle sort comments button
+    document.querySelector('.sort-comments-btn').addEventListener('click', function() {
+      alert("This would show comment sorting options");
+    });
+    
+    // Toggle dark mode if the body already has the dark-mode class
+    if (document.body.classList.contains('dark-mode')) {
+      // Apply dark mode to mini map
+      document.querySelector('.leaflet-layer').style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
+    }
+  </script>
+</body>
+</html>

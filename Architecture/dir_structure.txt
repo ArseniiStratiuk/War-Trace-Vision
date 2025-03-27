@@ -1,0 +1,74 @@
+wartrace/
+│
+├── manage.py
+├── wartrace/                  # Project settings
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+│
+├── authentication/            # User authentication app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py              # User, Role models
+│   ├── views.py               # Login, register, profile views
+│   ├── forms.py               # Authentication forms
+│   ├── urls.py
+│   └── templates/
+│       ├── login.html
+│       ├── register.html
+│       └── profile.html
+│
+├── maps/                      # Map visualization app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py              # Area, MapLayer models
+│   ├── views.py               # Map display views
+│   ├── urls.py
+│   └── templates/
+│       └── map.html
+│
+├── detection/                 # AI detection app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py              # Detection, DetectionType models
+│   ├── services/
+│   │   ├── detection_service.py  # AI detection logic
+│   │   └── opencv_utils.py       # Image processing utilities
+│   ├── tasks.py               # Background detection tasks
+│   ├── views.py
+│   ├── urls.py
+│   └── templates/
+│       └── review.html
+│
+├── content/                   # User-generated content app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py              # Annotation, Comment, Verification models
+│   ├── views.py
+│   ├── urls.py
+│   └── templates/
+│       ├── annotation-form.html
+│       ├── marker-create.html
+│       └── marker-detail.html
+│
+├── static/                    # Static files
+│   ├── css/
+│   │   ├── map.css
+│   │   ├── marker-create.css
+│   │   └── marker-detail.css
+│   └── images/
+│
+├── media/                     # User uploaded files
+│   ├── satellite_images/
+│   ├── detections/
+│   └── user_uploads/
+│
+├── venv/                      # Virtual environment (not tracked in git)
+│
+└── requirements.txt           # Project dependencies

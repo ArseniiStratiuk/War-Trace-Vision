@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Trace Vision - Create Marker</title>
+  {% load static %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="{% static 'css/map.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marker-create.css' %}">
+</head>
+<body>
+  <div class="map-container">
+    <div id="create-map"></div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <h1>War Trace Vision</h1>
+    <div class="status">Live • Create Mode</div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-button" id="back-to-map">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </div>
+
+  <!-- Create Marker Panel -->
+  <div class="create-panel">
+    <div class="create-header">
+      <h2>Create New Marker</h2>
+      <div class="marker-coordinates" id="selected-coordinates">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+        <span>Tap on map to select location</span>
+      </div>
+    </div>
+
+    <div class="create-content">
+      <form id="create-marker-form">
+        <div class="form-section">
+          <label>Location Options</label>
+          <div class="location-options">
+            <div class="location-option active" id="use-map-click">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              <span>Click on Map</span>
+            </div>
+            <div class="location-option" id="use-current-location">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+              </svg>
+              <span>Use Current Location</span>
+            </div>
+            <div class="location-option" id="use-coordinates">
+              <svg viewBox="0 0 24 24">
+                <path d="M15 13h2v2h-2zm0-4h2v2h-2zm4 4h2v2h-2zm0-4h2v2h-2zm-8 8h2v2h-2zm0-4h2v2h-2zm0-4h2v2h-2zM3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z"/>
+              </svg>
+              <span>Enter Coordinates</span>
+            </div>
+          </div>
+          
+          <div id="coords-input" style="display: none;">
+            <div class="coords-input-container">
+              <input type="text" id="lat-input" placeholder="Latitude (e.g. 50.4501)">
+              <input type="text" id="lng-input" placeholder="Longitude (e.g. 30.5234)">
+              <button type="button" class="coords-go-btn" id="go-to-coords">Go</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="marker-title">Title*</label>
+          <input type="text" id="marker-title" placeholder="Enter a descriptive title" required>
+        </div>
+
+        <div class="form-section">
+          <label for="marker-date">Date of Observation*</label>
+          <input type="date" id="marker-date" required>
+        </div>
+
+        <div class="form-section">
+          <label for="marker-category">Category*</label>
+          <div class="category-selector">
+            <div class="category-option active" data-category="infrastructure">
+              <div class="category-icon infrastructure"></div>
+              <span>Infrastructure</span>
+            </div>
+            <div class="category-option" data-category="military">
+              <div class="category-icon military"></div>
+              <span>Military</span>
+            </div>
+            <div class="category-option" data-category="hazard">
+              <div class="category-icon hazard"></div>
+              <span>Hazard</span>
+            </div>
+            <div class="category-option" data-category="residential">
+              <div class="category-icon residential"></div>
+              <span>Residential</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="marker-description">Description*</label>
+          <textarea id="marker-description" placeholder="Provide detailed information about what you observed" required></textarea>
+        </div>
+
+        <div class="form-section">
+          <label for="marker-source">Source*</label>
+          <input type="text" id="marker-source" placeholder="Describe how you obtained this information" required>
+        </div>
+
+        <div class="form-section media-upload-section">
+          <label>Media Upload</label>
+          <div class="media-upload-container">
+            <div class="media-preview-area" id="media-preview">
+              <!-- Uploaded images will appear here -->
+            </div>
+            <div class="upload-actions">
+              <button type="button" class="upload-btn" id="trigger-upload">
+                <svg viewBox="0 0 24 24">
+                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                </svg>
+                Upload Files
+              </button>
+            </div>
+            <input type="file" id="media-upload" multiple accept="image/*,video/*" class="file-input">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label>AI Analysis Options</label>
+          <div class="ai-options">
+            <div class="toggle-option">
+              <span>AI Object Detection</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-object-detection" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-option">
+              <span>Camouflage Detection</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-camouflage">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-option">
+              <span>Damage Assessment</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-damage" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-option">
+              <span>Thermal Analysis</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-thermal">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section verification-section">
+          <div class="verification-header">
+            <label>Verification</label>
+            <div class="verification-toggle">
+              <span>Request Verification</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-verification" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="verification-info">
+            <p>Requesting verification will submit this marker for review by verified experts in the community. This typically takes 24-48 hours.</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label>Visibility</label>
+          <div class="visibility-options">
+            <div class="visibility-option active" data-visibility="public">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
+              <span>Public</span>
+            </div>
+            <div class="visibility-option" data-visibility="verified">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+              </svg>
+              <span>Verified Users</span>
+            </div>
+            <div class="visibility-option" data-visibility="private">
+              <svg viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+              </svg>
+              <span>Private</span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button type="button" class="secondary-btn" id="cancel-marker">
+      <svg viewBox="0 0 24 24">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+      </svg>
+      Cancel
+    </button>
+    <button type="submit" class="primary-btn" id="save-marker" form="create-marker-form">
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+      </svg>
+      Save Marker
+    </button>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" id="notification">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+    </svg>
+    <span id="notification-message">Action completed</span>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize the map
+      const map = L.map('create-map').setView([51.505, -0.09], 13);
+      
+      // Attribution text
+      const attributionText = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+      
+      // More detailed standard layer - OpenStreetMap Humanitarian style for better detail
+      const detailedLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        attribution: attributionText,
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Variables to keep track of selected location
+      let selectedLocation = null;
+      let locationMarker = null;
+      
+      // Function to update coordinates display
+      function updateCoordinatesDisplay(lat, lng) {
+        document.getElementById('selected-coordinates').innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span>Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</span>
+        `;
+      }
+      
+      // Function to set marker at location
+      function setMarkerAt(lat, lng) {
+        // Remove previous marker if it exists
+        if (locationMarker) {
+          map.removeLayer(locationMarker);
+        }
+        
+        // Create a new marker
+        locationMarker = L.marker([lat, lng]).addTo(map);
+        
+        // Store selected location
+        selectedLocation = { lat, lng };
+        
+        // Update coordinates display
+        updateCoordinatesDisplay(lat, lng);
+        
+        // Center map on the location
+        map.setView([lat, lng], 15);
+      }
+      
+      // Handle map click
+      map.on('click', function(e) {
+        if (document.getElementById('use-map-click').classList.contains('active')) {
+          setMarkerAt(e.latlng.lat, e.latlng.lng);
+        }
+      });
+      
+      // Handle location options
+      const locationOptions = document.querySelectorAll('.location-option');
+      locationOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          // Remove active class from all options
+          locationOptions.forEach(opt => {
+            opt.classList.remove('active');
+          });
+          
+          // Add active class to clicked option
+          this.classList.add('active');
+          
+          // Show/hide coordinates input
+          document.getElementById('coords-input').style.display = 
+            this.id === 'use-coordinates' ? 'block' : 'none';
+          
+          // Handle current location option
+          if (this.id === 'use-current-location') {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                function(position) {
+                  setMarkerAt(position.coords.latitude, position.coords.longitude);
+                },
+                function(error) {
+                  showNotification('Could not get your location: ' + error.message);
+                }
+              );
+            } else {
+              showNotification('Geolocation is not supported by this browser.');
+            }
+          }
+        });
+      });
+      
+      // Handle coordinates input
+      document.getElementById('go-to-coords').addEventListener('click', function() {
+        const lat = parseFloat(document.getElementById('lat-input').value);
+        const lng = parseFloat(document.getElementById('lng-input').value);
+        
+        if (isNaN(lat) || isNaN(lng)) {
+          showNotification('Please enter valid coordinates.');
+          return;
+        }
+        
+        setMarkerAt(lat, lng);
+      });
+      
+      // Handle file upload
+      document.getElementById('trigger-upload').addEventListener('click', function() {
+        document.getElementById('media-upload').click();
+      });
+      
+      document.getElementById('media-upload').addEventListener('change', function(e) {
+        const files = e.target.files;
+        
+        if (files.length === 0) return;
+        
+        // Clear preview area
+        const previewArea = document.getElementById('media-preview');
+        previewArea.innerHTML = '';
+        
+        // Display each selected file
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const reader = new FileReader();
+          
+          reader.onload = function(event) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'media-preview-item';
+            
+            if (file.type.startsWith('image/')) {
+              const img = document.createElement('img');
+              img.src = event.target.result;
+              previewItem.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+              const video = document.createElement('video');
+              video.src = event.target.result;
+              video.controls = true;
+              previewItem.appendChild(video);
+            }
+            
+            previewArea.appendChild(previewItem);
+          };
+          
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      // Handle category selection
+      const categoryOptions = document.querySelectorAll('.category-option');
+      categoryOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          categoryOptions.forEach(opt => {
+            opt.classList.remove('active');
+          });
+          this.classList.add('active');
+        });
+      });
+      
+      // Handle visibility selection
+      const visibilityOptions = document.querySelectorAll('.visibility-option');
+      visibilityOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          visibilityOptions.forEach(opt => {
+            opt.classList.remove('active');
+          });
+          this.classList.add('active');
+        });
+      });
+      
+      // Handle form submission
+      document.getElementById('create-marker-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!selectedLocation) {
+          showNotification('Please select a location on the map.');
+          return;
+        }
+        
+        // Collect form data
+        const title = document.getElementById('marker-title').value;
+        const date = document.getElementById('marker-date').value;
+        const description = document.getElementById('marker-description').value;
+        const source = document.getElementById('marker-source').value;
+        
+        const activeCategory = document.querySelector('.category-option.active');
+        const category = activeCategory ? activeCategory.dataset.category : null;
+        
+        const activeVisibility = document.querySelector('.visibility-option.active');
+        const visibility = activeVisibility ? activeVisibility.dataset.visibility : null;
+        
+        const objectDetection = document.getElementById('toggle-object-detection').checked;
+        const camouflageDetection = document.getElementById('toggle-camouflage').checked;
+        const damageAssessment = document.getElementById('toggle-damage').checked;
+        const thermalAnalysis = document.getElementById('toggle-thermal').checked;
+        const requestVerification = document.getElementById('toggle-verification').checked;
+        
+        // Get uploaded files
+        const fileInput = document.getElementById('media-upload');
+        const files = fileInput.files;
+        const fileNames = Array.from(files).map(file => file.name);
+        
+        // Display collected data in alert
+        const formData = {
+          location: selectedLocation,
+          title: title,
+          date: date,
+          category: category,
+          description: description,
+          source: source,
+          files: fileNames,
+          options: {
+            objectDetection,
+            camouflageDetection,
+            damageAssessment,
+            thermalAnalysis,
+            requestVerification
+          },
+          visibility: visibility
+        };
+        
+        alert('Form submitted with data:\n' + JSON.stringify(formData, null, 2));
+        
+        // Show success notification
+        showNotification('Marker saved successfully!');
+      });
+      
+      // Handle cancel button
+      document.getElementById('cancel-marker').addEventListener('click', function() {
+        if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
+          // In a real app, you would navigate back to the previous page
+          showNotification('Operation cancelled');
+        }
+      });
+      
+      // Handle back button
+      document.getElementById('back-to-map').addEventListener('click', function() {
+        if (confirm('Go back to map? Any unsaved changes will be lost.')) {
+          // In a real app, you would navigate back to the map page
+          showNotification('Returning to map');
+        }
+      });
+      
+      // Notification function
+      function showNotification(message) {
+        const notification = document.getElementById('notification');
+        document.getElementById('notification-message').textContent = message;
+        
+        notification.classList.add('show');
+        
+        setTimeout(function() {
+          notification.classList.remove('show');
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>
