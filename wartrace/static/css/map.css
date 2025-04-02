@@ -492,3 +492,148 @@ body.dark-mode .tooltip p[title]:hover::after {
     background: rgba(60, 60, 60, 0.95);
     color: #f8f8f8;
 }
+
+/* Filter panel styles */
+.filter-panel {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 280px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 1000;
+  }
+  
+  .dark-mode .filter-panel {
+    background-color: #333;
+    color: #fff;
+  }
+  
+  .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .dark-mode .filter-header {
+    border-bottom: 1px solid #555;
+  }
+  
+  .filter-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  
+  #close-filter {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+  }
+  
+  .dark-mode #close-filter {
+    color: #ccc;
+  }
+  
+  .filter-content {
+    padding: 15px;
+  }
+  
+  .filter-group {
+    margin-bottom: 12px;
+  }
+  
+  .filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .filter-group select,
+  .filter-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .dark-mode .filter-group select,
+  .dark-mode .filter-group input {
+    background-color: #444;
+    border: 1px solid #666;
+    color: #fff;
+  }
+  
+  #apply-filters,
+  #reset-filters {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    margin-top: 5px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  #apply-filters {
+    background-color: #1976D2;
+    color: white;
+  }
+  
+  #reset-filters {
+    background-color: #f5f5f5;
+    color: #333;
+    margin-top: 8px;
+  }
+  
+  .dark-mode #reset-filters {
+    background-color: #555;
+    color: #fff;
+  }
+  
+  /* Loading state styling */
+  .loading-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    z-index: 1000;
+  }
+  
+  .dark-mode .loading-indicators {
+    background-color: rgba(51, 51, 51, 0.9);
+    color: #fff;
+  }
+  
+  .spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #1976D2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  
+  .dark-mode .spinner {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-left-color: #64B5F6;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
