@@ -1,0 +1,40 @@
+<!-- {% load static %}
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат</title>
+    <link rel="stylesheet" href="{% static 'volunteer_app/styles.css' %}">
+</head>
+<body>
+
+    <div class="top-menu">MilitaryTinder - Чат</div>
+
+    <main>
+        <p>Тут буде чат із волонтером / військовим.</p>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'home' %}">🏠</a>
+        <a href="{% url 'chat' %}">☰</a>
+        <a href="{% url 'profile' %}">👤</a>
+    </div>
+
+</body>
+</html> -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+</head>
+<body>
+    <h1>Chat about: {{ request_details.title }}</h1>
+    <p>{{ request_details.description }}</p>
+
+    <button onclick="window.history.back();">Back to Requests</button>
+</body>
+</html>
+

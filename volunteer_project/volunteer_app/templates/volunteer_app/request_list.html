@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MilitaryTinder</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="top-menu">MilitaryTinder</div>
+
+    <main>
+        {% if current_request %}
+            <div class="request-card">
+                <div class="photo-container">
+                    {% if current_request.photo %}
+                        <img src="{{ current_request.photo.url }}" alt="Фото" class="profile-photo">
+                    {% else %}
+                        <span>фото</span>
+                    {% endif %}
+                </div>
+
+                <h3>{{ current_request.name }}</h3>
+                <p><strong>{{ current_request.category }}</strong></p>
+                <p>{{ current_request.description }}</p>
+
+                {% if current_request.urgency %}
+                    <div class="urgency">ТЕРМІНОВІСТЬ: {{ current_request.urgency|upper }}</div>
+                {% endif %}
+
+                <div class="button-container">
+                    <a href="{% url 'reject_request' current_request.id %}" class="reject-button">✖</a>
+                    <a href="{% url 'chat' %}" class="info-button">Більше інформації</a>
+                    <a href="{% url 'profile' %}" class="accept-button">Берусь</a>
+                </div>
+            </div>
+        {% else %}
+            <p class="no-requests">Наразі немає нових запитів.</p>
+        {% endif %}
+    </main>
+
+    <div class="bottom-menu">
+        {% if request.path == '/' %}
+            <a href="{% url 'map' %}">🔥</a>  
+        {% else %}
+            <a href="{% url 'home' %}">🏠</a>  
+        {% endif %}
+        <a href="{% url 'chat' %}">☰</a>
+        <a href="{% url 'profile' %}">👤</a>
+    </div>
+
+</body>
+</html>

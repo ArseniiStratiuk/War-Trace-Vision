@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personal Page</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}!</h1>
+
+    <h2>Contacts:</h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Phone: {{ contacts.phone|default:"Not provided" }}</p>
+    <p>Socials: {% if contacts.socials.title and contacts.socials.link %}<a href="{{ contacts.socials.link }}">{{ contacts.socials.title }}</a>{% else %}Not provided{% endif %}</p>
+
+    <button id="editContacts">Edit</button>
+
+    <div id="contactForm" style="display: none;">
+        <form method="post">
+            {% csrf_token %}
+            {{ contact_form.as_p }}
+            <button type="submit">Save Contacts</button>
+        </form>
+    </div>
+
+    <h2>Request Data:</h2>
+    {% if request_data %}
+        <ul>
+        {% for request_id, request_details in request_data.items %}
+            <li>
+                <strong>{{ request_details.title }}</strong><br>
+                Description: {{ request_details.description }}<br>
+                Deadline: {{ request_details.deadline }}<br>
+                Price: {{ request_details.approximate_price }} (hrn)<br>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No requests yet.</p>
+    {% endif %}
+    
+    {% if request_form %}
+    <h2>Add Request:</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ request_form.as_p }}
+        <button type="submit">Add Request</button>
+    </form>
+    {% endif %}
+
+    <h2>My markers</h2>
+
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+    <script>
+        document.getElementById('editContacts').addEventListener('click', function() {
+            var form = document.getElementById('contactForm');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
