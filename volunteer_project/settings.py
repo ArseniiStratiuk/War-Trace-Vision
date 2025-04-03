@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # INSTALLED_APPS = [
 #     'django.contrib.admin',
 #     'django.contrib.auth',
@@ -43,6 +44,8 @@ ALLOWED_HOSTS = []  # Додай домени, якщо потрібно
 
 # Встановлені додатки
 =======
+=======
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 """
 Django settings for volunteer_project project.
 
@@ -75,6 +78,9 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+<<<<<<< HEAD
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
+=======
 >>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -84,10 +90,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 <<<<<<< HEAD
+<<<<<<< HEAD
     'volunteer_app',  # Твій додаток
 ]
 
 # Середні сервіси
+=======
+    'volunteer_app',
+]
+
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 =======
     'volunteer_app',
 ]
@@ -104,6 +116,7 @@ MIDDLEWARE = [
 ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # URL конфігурація
 ROOT_URLCONF = 'volunteer_project.urls'
 
@@ -113,12 +126,17 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'volunteer_app/templates'],  # Шлях до шаблонів
 =======
+=======
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 ROOT_URLCONF = 'volunteer_project.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
+<<<<<<< HEAD
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
+=======
 >>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
         'APP_DIRS': True,
         'OPTIONS': {
@@ -133,6 +151,7 @@ TEMPLATES = [
 ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # WSGI для розгортання
 WSGI_APPLICATION = 'volunteer_project.wsgi.application'
 
@@ -146,6 +165,8 @@ DATABASES = {
 
 # Налаштування аутентифікації
 =======
+=======
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 
 WSGI_APPLICATION = 'volunteer_project.wsgi.application'
 
@@ -164,6 +185,9 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+<<<<<<< HEAD
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
+=======
 >>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -180,6 +204,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 # Мови та часовий пояс
 LANGUAGE_CODE = 'uk'
@@ -204,6 +229,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Тип поля первинного ключа за замовчуванням
 =======
+=======
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -225,5 +252,8 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
+<<<<<<< HEAD
+>>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
+=======
 >>>>>>> 06648135a6a47c01fe23792866272ebd11063a6a
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
