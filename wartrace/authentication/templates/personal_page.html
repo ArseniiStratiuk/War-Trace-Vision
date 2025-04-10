@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personal Page</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/personal_page.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Welcome, {{ user.username }}!</h1>
+        <p>{{ user.profile.get_category_display }}</p>
+        <p>{{ user.email }}</p>
+    </header>
+
+    <aside>
+        <div class="contact-info">
+            <h2>Contact info</h2>
+            <p>Email: {{ user.email }}</p>
+            <p>Tel: {{ contacts.phone|default:"Not provided" }}</p>
+            <p>Social: {% if contacts.socials.title and contacts.socials.link %}<a href="{{ contacts.socials.link }}">{{ contacts.socials.title }}</a>{% else %}Not provided{% endif %}</p>
+            <button id="editContacts">Edit</button>
+            <div id="contactForm" style="display: none;">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ contact_form.as_p }}
+                    <button type="submit">Save Contacts</button>
+                </form>
+            </div>
+        </div>
+
+        {% if request_form %}
+        <div id="add-request-form-container">
+            <h2>Form to add new request</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ request_form.as_p }}
+                <button type="submit">Add Request</button>
+            </form>
+        </div>
+        {% endif %}
+    </aside>
+
+    <main>
+        <div class="archive-section">
+            <h2>Archive</h2>
+            {% if request_data %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Price (грн)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                {% for req in request_data %}
+                <tbody>
+                    <td>{{ req.name }}</td>
+                    <td>{{ req.description }}</td>
+                    <td>{{ req.aproximate_price }}</td>
+                    {% if req.status == 'in_progress' and request_form %}
+                    <td><a href="{% url 'profile' req.volunteer.id %}">{{ req.get_status_display }}</a><br><a href="{% url 'req_ready' req.id %}">Готово</a></td>
+                    {% else %}
+                    <td>{{ req.get_status_display }}</td>
+                    {% endif %}
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>No requests yet.</p>
+            {% endif %}
+        </div>
+
+        <h2>My markers</h2>
+        {% if not my_markers %}
+        <p>Поки нема маркерів</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'map' %}">Карта 🔥</a>
+        {% if not request_form %}
+        <a href="{% url 'search' %}">Шукати нові збори 👤</a>
+        {% endif %}
+    </div>
+</body>
+</html>

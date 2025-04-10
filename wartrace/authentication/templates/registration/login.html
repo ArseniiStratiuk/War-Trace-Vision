@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1 class="login-title">Sign in</h1>
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                <div class="form-field">
+                    {{ form.username.errors }}
+                    {{ form.username }}
+                    <small>Ім'я користувача</small>
+                </div>
+                <div class="form-field">
+                    {{ form.password.errors }}
+                    {{ form.password }}
+                    <small>Пароль</small>
+                </div>
+
+                <button type="submit" class="login-button">sign in</button>
+            </form>
+
+            <p class="bottom-links">
+                <a href="{% url 'register' %}">Register</a> |
+                <a href="{% url 'password_reset' %}">Forgot Password?</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
