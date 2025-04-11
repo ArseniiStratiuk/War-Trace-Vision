@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
     path('maps/', include('maps.urls')),
-    path('detection/', include('detection.urls')),
+    path('detection/', include('detection.urls', namespace='detection')),
     path('content/', include('content.urls')),
     path('search/', include('volunteer_app.urls'), name='search'),
     path('', RedirectView.as_view(url='/maps/'), name='home'),
@@ -33,3 +33,4 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static('/detection_results/', document_root=settings.MEDIA_ROOT + '/detection_results')

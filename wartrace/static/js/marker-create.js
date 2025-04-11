@@ -237,6 +237,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Using FormData to handle file uploads
     const formData = new FormData(this);
     
+    // Add latitude and longitude from selectedLocation
+    formData.set('latitude', selectedLocation.lat);
+    formData.set('longitude', selectedLocation.lng);
+    
+    // Ensure boolean fields are properly handled
+    const booleanFields = [
+      'object_detection', 
+      'military_detection', 
+      'damage_assessment', 
+      'emergency_recognition',
+      'request_verification'
+    ];
+    
+    booleanFields.forEach(field => {
+      if (!formData.has(field)) {
+        formData.append(field, 'false');
+      }
+    });
+    
     // Send AJAX request to create marker
     fetch('/content/marker/create/submit/', {
       method: 'POST',

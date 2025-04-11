@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models, transaction
 import json
+import os
 
 from .models import Marker, MarkerFile, Comment, MarkerReport
 from .forms import MarkerForm, MarkerFileForm
@@ -79,9 +80,9 @@ def edit_marker_submit(request, marker_id):
         
         # Update boolean fields
         marker.object_detection = request.POST.get('object_detection') == 'on'
-        marker.camouflage_detection = request.POST.get('camouflage_detection') == 'on'
+        marker.military_detection = request.POST.get('military_detection') == 'on'
         marker.damage_assessment = request.POST.get('damage_assessment') == 'on'
-        marker.thermal_analysis = request.POST.get('thermal_analysis') == 'on'
+        marker.emergency_recognition = request.POST.get('emergency_recognition') == 'on'
         marker.request_verification = request.POST.get('request_verification') == 'on'
         
         # If request verification is enabled, update marker verification status
@@ -211,10 +212,17 @@ def add_media(request, marker_id):
     
     try:
         # Handle file uploads
-        files = request.FILES.getlist('file')  # Changed from 'files' to 'file' to match the HTML form
+        files = request.FILES.getlist('file')
+        if not files:
+            return JsonResponse({
+                'success': False,
+                'message': 'No files were uploaded'
+            }, status=400)
+            
         uploaded_files = []
         
         for file in files:
+            # Create and save the file
             file_instance = MarkerFile(marker=marker, file=file)
             file_instance.save()
             
@@ -225,14 +233,15 @@ def add_media(request, marker_id):
                 'uploaded_at': file_instance.uploaded_at.strftime('%Y-%m-%d')
             })
         
-        # If it's an AJAX request, return JSON response
+        # If it's an AJAX request, return JSON
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
+                'message': f'Successfully uploaded {len(uploaded_files)} files',
                 'files': uploaded_files
             })
         
-        # Otherwise redirect to the marker detail page
+        # Otherwise redirect back to the marker detail page
         return redirect('marker_detail', marker_id=marker.id)
     
     except Exception as e:
@@ -439,10 +448,12 @@ def create_marker(request):
             data = request.POST.dict()
 
             # Convert string boolean values to actual booleans
-            for key in ['object_detection', 'camouflage_detection', 'damage_assessment', 
-                        'thermal_analysis', 'request_verification']:
+            for key in ['object_detection', 'military_detection', 'damage_assessment', 
+                        'emergency_recognition', 'request_verification']:
                 if key in data:
                     data[key] = data[key].lower() == 'true'
+            
+            # Remove camouflage_detection from this list if it exists
 
         # Create marker instance
         marker = Marker(
@@ -454,12 +465,13 @@ def create_marker(request):
             date=datetime.strptime(data.get('date'), '%Y-%m-%d').date() if data.get('date') else timezone.now(),
             category=data.get('category', 'infrastructure'),
             source=data.get('source', ''),
-            visibility=data.get('visibility', 'private'),
+            # Ensure we're only using valid fields
             object_detection=data.get('object_detection', False),
-            camouflage_detection=data.get('camouflage_detection', False),
+            military_detection=data.get('military_detection', False),
             damage_assessment=data.get('damage_assessment', False),
-            thermal_analysis=data.get('thermal_analysis', False),
-            request_verification=data.get('request_verification', False)
+            emergency_recognition=data.get('emergency_recognition', False),
+            request_verification=data.get('request_verification', True),
+            visibility=data.get('visibility', 'public')
         )
         marker.save()
 

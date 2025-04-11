@@ -1,0 +1,131 @@
+/* Styles for AI detection results */
+
+.ai-options-section {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.ai-options-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ai-option-badge {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #e0e7ff;
+    border-radius: 15px;
+    font-size: 14px;
+    color: #4c5db1;
+}
+
+.ai-option-badge svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+    fill: #4c5db1;
+}
+
+.view-ai-results-btn {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #4c5db1;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    width: fit-content;
+    font-size: 14px;
+}
+
+.view-ai-results-btn svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    fill: white;
+}
+
+.view-ai-results-btn:hover {
+    background-color: #3c4b8f;
+    color: white;
+}
+
+.detection-image-container {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.original-image-container {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.image-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.result-summary {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Style for process buttons */
+.process-file-btn, .process-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.process-file-btn svg, .process-btn svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+
+/* Detection badges in marker list */
+.detection-types .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 8px;
+    font-weight: normal;
+}
+
+.detection-types .badge svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 3px;
+}
+
+/* Media query for responsiveness */
+@media (max-width: 768px) {
+    .ai-options-badges {
+        flex-direction: column;
+    }
+    
+    .detection-types {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+}

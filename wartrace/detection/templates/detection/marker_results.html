@@ -1,0 +1,361 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Trace Vision - AI Аналіз</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="{% static 'css/map.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marker-detail.css' %}">
+  <style>
+    .detection-container {
+      margin-bottom: 30px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+    }
+    
+    .detection-container:last-child {
+      border-bottom: none;
+    }
+    
+    .detection-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    
+    .detection-title {
+      font-weight: 600;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .detection-title svg {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    
+    .media-comparison {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .media-original, .media-annotated {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .media-heading {
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .media-heading svg {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+    
+    .media-img-container {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .media-img-container img, .media-img-container video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .detection-results {
+      background-color: #f8f8f8;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .detection-item {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .detection-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .detection-label {
+      font-weight: 500;
+    }
+    
+    .detection-confidence {
+      background-color: #4285F4;
+      color: white;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 12px;
+    }
+    
+    .confidence-high {
+      background-color: #34A853;
+    }
+    
+    .confidence-medium {
+      background-color: #FBBC05;
+    }
+    
+    .confidence-low {
+      background-color: #EA4335;
+    }
+    
+    .no-detections {
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      background-color: #f8f8f8;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #4285F4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+    
+    .detection-tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 20px;
+    }
+    
+    .detection-tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .detection-tab.active {
+      border-bottom-color: #4285F4;
+      color: #4285F4;
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Dark mode styles */
+    body.dark-mode .detection-container {
+      border-bottom-color: #444;
+    }
+    
+    body.dark-mode .detection-results {
+      background-color: #333;
+    }
+    
+    body.dark-mode .detection-item {
+      border-bottom-color: #444;
+    }
+    
+    body.dark-mode .detection-tabs {
+      border-bottom-color: #444;
+    }
+    
+    body.dark-mode .no-detections {
+      color: #ccc;
+      background-color: #333;
+    }
+  </style>
+</head>
+<body class="{% if request.GET.dark_mode %}dark-mode{% endif %}">
+  <div class="back-button" onclick="window.location.href='{% url 'index' %}'">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </div>
+
+  <div class="detail-panel" style="top: 0;">
+    <div class="detail-header">
+      <h2>Результати ШІ аналізу</h2>
+    </div>
+
+    <div class="detail-content">
+      <a href="{% url 'marker_detail' marker.id %}" class="back-link">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Повернутися до маркера "{{ marker.title }}"
+      </a>
+
+      {% if files_with_detections %}
+        <div class="detection-tabs">
+          {% for file_data in files_with_detections %}
+            <div class="detection-tab {% if forloop.first %}active{% endif %}" data-target="file-{{ file_data.file.id }}">
+              Файл {{ forloop.counter }}
+            </div>
+          {% endfor %}
+        </div>
+
+        {% for file_data in files_with_detections %}
+          <div id="file-{{ file_data.file.id }}" class="tab-content {% if forloop.first %}active{% endif %}">
+            <div class="detection-container">
+              <div class="detection-header">
+                <h3 class="detection-title">{{ file_data.file.file.name|filename }}</h3>
+              </div>
+
+              <div class="media-comparison">
+                <div class="media-original">
+                  <div class="media-heading">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
+                    Оригінальне зображення
+                  </div>
+                  <div class="media-img-container">
+                    {% if file_data.file.file.url|slice:"-4:" == ".jpg" or file_data.file.file.url|slice:"-5:" == ".jpeg" or file_data.file.file.url|slice:"-4:" == ".png" or file_data.file.file.url|slice:"-4:" == ".gif" %}
+                      <img src="{{ file_data.file.file.url }}" alt="Оригінальне зображення">
+                    {% else %}
+                      <video src="{{ file_data.file.file.url }}" controls></video>
+                    {% endif %}
+                  </div>
+                </div>
+
+                {% for detection in file_data.detections %}
+                  {% if detection.detector_type in 'object_detection,military_detection' and detection.image_path %}
+                    <div class="media-annotated">
+                      <div class="media-heading">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        {% if detection.detector_type == 'object_detection' %}
+                          Розпізнавання об'єктів
+                        {% elif detection.detector_type == 'military_detection' %}
+                          Виявлення військових об'єктів
+                        {% endif %}
+                      </div>
+                      <div class="media-img-container">
+                        <img src="{{ detection.image_path }}" alt="Результат аналізу">
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% for detection in file_data.detections %}
+                <div class="detection-results">
+                  <h4>
+                    {% if detection.detector_type == 'object_detection' %}
+                      Розпізнавання об'єктів
+                    {% elif detection.detector_type == 'military_detection' %}
+                      Виявлення військових об'єктів
+                    {% elif detection.detector_type == 'damage_assessment' %}
+                      Оцінка пошкоджень
+                    {% elif detection.detector_type == 'emergency_recognition' %}
+                      Розпізнавання надзвичайних ситуацій
+                    {% endif %}
+                    ({{ detection.model_name }})
+                  </h4>
+                  
+                  <p>{{ detection.summary }}</p>
+
+                  {% if detection.objects %}
+                    <div class="detection-list">
+                      {% for object in detection.objects %}
+                        <div class="detection-item">
+                          <span class="detection-label">{{ object.label }}</span>
+                          <span class="detection-confidence {% if object.confidence >= 0.7 %}confidence-high{% elif object.confidence >= 0.4 %}confidence-medium{% else %}confidence-low{% endif %}">
+                            {{ object.confidence|floatformat:2 }}
+                          </span>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  {% if detection.classifications %}
+                    <div class="detection-list">
+                      {% for classification in detection.classifications %}
+                        <div class="detection-item">
+                          <span class="detection-label">{{ classification.label|title }}</span>
+                          <span class="detection-confidence {% if classification.confidence >= 0.7 %}confidence-high{% elif classification.confidence >= 0.4 %}confidence-medium{% else %}confidence-low{% endif %}">
+                            {{ classification.confidence|floatformat:2 }}
+                          </span>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="no-detections">
+          <h3>Немає результатів аналізу</h3>
+          <p>Для цього маркера ще не було виконано аналіз або не знайдено об'єктів.</p>
+          <a href="{% url 'marker_detail' marker.id %}" class="back-link">Повернутися до маркера</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Tab functionality
+    document.querySelectorAll('.detection-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.detection-tab').forEach(t => {
+          t.classList.remove('active');
+        });
+        
+        // Show selected tab content and activate tab
+        const target = this.getAttribute('data-target');
+        document.getElementById(target).classList.add('active');
+        this.classList.add('active');
+      });
+    });
+
+    // Toggle dark mode if the body already has the dark-mode class
+    if (document.body.classList.contains('dark-mode')) {
+      // Apply dark mode to images
+      document.querySelectorAll('.leaflet-layer').forEach(layer => {
+        layer.style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
+      });
+    }
+  </script>
+</body>
+</html>

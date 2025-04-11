@@ -1,0 +1,255 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Trace Vision - Огляд результатів аналізу</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="{% static 'css/map.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marker-detail.css' %}">
+  <style>
+    .review-container {
+      padding: 20px;
+    }
+    
+    .review-header {
+      margin-bottom: 30px;
+    }
+    
+    .review-header h2 {
+      margin-bottom: 10px;
+    }
+    
+    .markers-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .marker-card {
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    
+    .marker-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .marker-image {
+      height: 160px;
+      overflow: hidden;
+      position: relative;
+      background-color: #f5f5f5;
+    }
+    
+    .marker-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .marker-details {
+      padding: 15px;
+    }
+    
+    .marker-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    
+    .marker-meta {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .marker-ai-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .ai-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background-color: #e0f7fa;
+      color: #00838f;
+    }
+    
+    .view-results-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #4285F4;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .no-markers {
+      padding: 30px;
+      text-align: center;
+      color: #666;
+      background-color: #f8f8f8;
+      border-radius: 10px;
+      margin: 40px auto;
+      max-width: 600px;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #4285F4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .back-link svg {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+
+    /* Dark mode styles */
+    body.dark-mode .marker-card {
+      background-color: #333;
+    }
+    
+    body.dark-mode .marker-title {
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .marker-meta {
+      color: #bbb;
+    }
+    
+    body.dark-mode .marker-image {
+      background-color: #222;
+    }
+    
+    body.dark-mode .ai-badge {
+      background-color: #263238;
+      color: #80deea;
+    }
+    
+    body.dark-mode .no-markers {
+      background-color: #333;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body class="{% if request.GET.dark_mode %}dark-mode{% endif %}">
+  <div class="back-button" onclick="window.location.href='{% url 'index' %}'">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </div>
+
+  <div class="detail-panel" style="top: 0;">
+    <div class="detail-header">
+      <h2>Огляд результатів аналізу</h2>
+    </div>
+
+    <div class="detail-content review-container">
+      <a href="{% url 'index' %}" class="back-link">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Повернутися до карти
+      </a>
+
+      <div class="review-header">
+        <h2>Маркери з AI-аналізом</h2>
+        <p>Перегляньте результати AI-аналізу для ваших маркерів</p>
+      </div>
+
+      {% if markers %}
+        <div class="markers-list">
+          {% for marker in markers %}
+            <div class="marker-card">
+              <div class="marker-image">
+                {% if marker.files.all %}
+                  {% with first_file=marker.files.first %}
+                    {% if first_file.file.url|slice:"-4:" == ".jpg" or first_file.file.url|slice:"-5:" == ".jpeg" or first_file.file.url|slice:"-4:" == ".png" or first_file.file.url|slice:"-4:" == ".gif" %}
+                      <img src="{{ first_file.file.url }}" alt="{{ marker.title }}">
+                    {% else %}
+                      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f0f0f0;">
+                        <svg viewBox="0 0 24 24" style="width:32px; height:32px; fill:#999;">
+                          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                        </svg>
+                      </div>
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f0f0f0;">
+                    <svg viewBox="0 0 24 24" style="width:32px; height:32px; fill:#999;">
+                      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="marker-details">
+                <div class="marker-title">{{ marker.title|truncate:30 }}</div>
+                <div class="marker-meta">
+                  {{ marker.date|date:"d.m.Y" }} • 
+                  {% if marker.category == 'infrastructure' %}
+                    Інфраструктура
+                  {% elif marker.category == 'military' %}
+                    Військовий об'єкт
+                  {% elif marker.category == 'hazard' %}
+                    Небезпека
+                  {% elif marker.category == 'residential' %}
+                    Житловий об'єкт
+                  {% else %}
+                    Інше
+                  {% endif %}
+                </div>
+                <div class="marker-ai-options">
+                  {% if marker.object_detection %}
+                    <span class="ai-badge">Об'єкти</span>
+                  {% endif %}
+                  {% if marker.military_detection %}
+                    <span class="ai-badge">Військові</span>
+                  {% endif %}
+                  {% if marker.damage_assessment %}
+                    <span class="ai-badge">Пошкодження</span>
+                  {% endif %}
+                  {% if marker.emergency_recognition %}
+                    <span class="ai-badge">Надзвичайні ситуації</span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'marker_detection_results' marker.id %}" class="view-results-btn">Переглянути результати</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="no-markers">
+          <h3>Немає маркерів з AI-аналізом</h3>
+          <p>Створіть маркер з увімкненими параметрами AI-аналізу, або увімкніть їх у існуючих маркерах.</p>
+          <p><a href="{% url 'marker_create' %}" class="view-results-btn">Створити новий маркер</a></p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // Toggle dark mode if the body already has the dark-mode class
+    if (document.body.classList.contains('dark-mode')) {
+      document.querySelectorAll('.marker-image div').forEach(div => {
+        div.style.backgroundColor = '#333';
+      });
+    }
+  </script>
+</body>
+</html>

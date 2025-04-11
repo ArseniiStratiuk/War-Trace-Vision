@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -148,9 +149,9 @@
               </label>
             </div>
             <div class="toggle-option">
-              <span>Виявлення маскування</span>
+              <span>Виявлення військових об'єктів</span>
               <label class="toggle-switch">
-                <input type="checkbox" id="toggle-camouflage" name="camouflage_detection">
+                <input type="checkbox" id="toggle-military-detection" name="military_detection">
                 <span class="toggle-slider"></span>
               </label>
             </div>
@@ -162,9 +163,9 @@
               </label>
             </div>
             <div class="toggle-option">
-              <span>Тепловий аналіз</span>
+              <span>Розпізнавання надзвичайних ситуацій</span>
               <label class="toggle-switch">
-                <input type="checkbox" id="toggle-thermal" name="thermal_analysis">
+                <input type="checkbox" id="toggle-emergency" name="emergency_recognition">
                 <span class="toggle-slider"></span>
               </label>
             </div>

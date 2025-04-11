@@ -41,9 +41,9 @@ class Marker(models.Model):
     
     # Detection options
     object_detection = models.BooleanField(default=False)
-    camouflage_detection = models.BooleanField(default=False)
+    military_detection = models.BooleanField(default=False)  # New field for military object detection
     damage_assessment = models.BooleanField(default=False)
-    thermal_analysis = models.BooleanField(default=False)
+    emergency_recognition = models.BooleanField(default=False)  # New field for emergency recognition
     request_verification = models.BooleanField(default=False)
     
     # Add upvoting functionality
