@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="send-message-container">
+    <h2>Написати автору запиту</h2>
+    <p><strong>Запит:</strong> {{ request.name }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <textarea name="message" placeholder="Введіть повідомлення..." rows="4" required></textarea><br>
+        <button type="submit">Надіслати</button>
+    </form>
+</div>
+{% endblock %}
