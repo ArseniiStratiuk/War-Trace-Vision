@@ -120,20 +120,23 @@
         </div>
 
         <div class="form-section media-upload-section">
-          <label>Медіафайли</label>
+          <label>Медіафайл*</label>
           <div class="media-upload-container">
             <div class="media-preview-area" id="media-preview">
-              <!-- Uploaded images will appear here -->
+              <!-- Uploaded image will appear here -->
             </div>
             <div class="upload-actions">
               <button type="button" class="upload-btn" id="trigger-upload">
                 <svg viewBox="0 0 24 24">
                   <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
                 </svg>
-                Завантажити файли
+                Завантажити зображення
               </button>
             </div>
-            <input type="file" id="media-upload" name="files" multiple accept="image/*,video/*" class="file-input">
+            <input type="file" id="media-upload" name="files" accept="image/*" class="file-input">
+          </div>
+          <div class="upload-info-text">
+            <small>Дозволено завантажити тільки одне зображення для ШІ-аналізу.</small>
           </div>
         </div>
 
@@ -148,28 +151,20 @@
               </label>
             </div>
             <div class="toggle-option">
-              <span>Виявлення маскування</span>
+              <span>Військова техніка</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="toggle-camouflage" name="camouflage_detection">
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <div class="toggle-option">
-              <span>Оцінка пошкоджень</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-damage" name="damage_assessment" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="toggle-option">
-              <span>Тепловий аналіз</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-thermal" name="thermal_analysis">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
+          </div>
+          <div class="ai-info-text">
+            <small>Обрані опції ШІ-аналізу будуть застосовані до завантаженого зображення після створення маркера.</small>
           </div>
         </div>
+
+        <input type="hidden" id="toggle-damage" name="damage_assessment" value="false">
+        <input type="hidden" id="toggle-thermal" name="thermal_analysis" value="false">
 
         <div class="form-section verification-section">
           <div class="verification-header">
@@ -241,5 +236,29 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <script src="{% static 'js/marker-create.js' %}"></script>
+  <script>
+    // Add script to limit uploads to a single image
+    document.addEventListener('DOMContentLoaded', function() {
+      const mediaUpload = document.getElementById('media-upload');
+      
+      if (mediaUpload) {
+        mediaUpload.addEventListener('change', function(e) {
+          const files = e.target.files;
+          if (files && files.length > 0) {
+            // Only take the first file
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+              // Clear uploadedFiles and add only this one
+              uploadedFiles = [file];
+              refreshPreview();
+            } else {
+              alert('Будь ласка, завантажте файл зображення');
+              this.value = '';
+            }
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

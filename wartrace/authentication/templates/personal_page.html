@@ -81,6 +81,7 @@
 
     <div class="bottom-menu">
         <a href="{% url 'map' %}">Карта 🔥</a>
+        <a href="{% url 'volunteer_app:chat_history' %}">🕓 Історія чатів</a>
         {% if not request_form %}
         <a href="{% url 'volunteer_app:search' %}">Шукати нові збори 👤</a>
         {% endif %}

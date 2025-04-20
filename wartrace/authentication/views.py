@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm, ContactForm 
 from volunteer_app.forms import RequestForm
 from volunteer_app.models import Request
@@ -83,7 +83,8 @@ def bad_category(request):
 def profile(request, volunteer_id):
     user_profile = UserProfile.objects.get(id=volunteer_id)
     req_data = user_profile.requests.all() if user_profile.category == 'soldier' else user_profile.volunteer_req.all()
-    return render(request, 'profile.html', {'user':user_profile.user, 'contacts':user_profile.get_contacts(), 'request_data': req_data})
+    visitor = request.user.profile
+    return render(request, 'profile.html', {'user':user_profile.user, 'contacts':user_profile.get_contacts(), 'request_data': req_data, 'visitor':visitor})
 
 @login_required
 def req_ready(request, req_id):
@@ -100,8 +101,6 @@ def settings(request):
         user_profile = request.user.profile
         contacts = user_profile.get_contacts()
         contact_form = ContactForm(request.POST)
-        print(contact_form.is_valid())
-        print(contact_form.errors)
         if contact_form.is_valid():
             contacts['phone'] = contact_form.cleaned_data['phone']
             contacts['socials'] = {
@@ -111,7 +110,6 @@ def settings(request):
             user_profile.set_contacts(contacts)
             user_profile.save()
             return redirect('personal_page')
-        else:
-            return render(request, 'settings.html', {'contact_form':contact_form})
+        return render(request, 'settings.html', {'contact_form':contact_form})
     form = ContactForm()
     return render(request, 'settings.html', {'contact_form':form})

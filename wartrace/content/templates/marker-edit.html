@@ -9,6 +9,16 @@
   <link rel="stylesheet" href="{% static 'css/map.css' %}">
   <link rel="stylesheet" href="{% static 'css/marker-create.css' %}">
   {% csrf_token %}
+  <style>
+    /* Replace reprocessing hint with edit info */
+    .edit-hint {
+      background-color: rgba(66, 133, 244, 0.15);
+      border-left: 4px solid #4285F4;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 0 4px 4px 0;
+    }
+  </style>
 </head>
 <body>
   <div id="edit-map"></div>
@@ -39,6 +49,11 @@
     </div>
 
     <div class="create-content edit-content">
+      <!-- Replace reprocessing hint with edit hint -->
+      <div class="edit-hint" id="editHint">
+        <strong>Редагування маркера:</strong> Ви можете змінити текстову інформацію та додати або видалити медіафайли.
+      </div>
+      
       <form id="edit-marker-form" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" id="latitude" name="latitude" value="{{ marker.latitude }}">
@@ -142,43 +157,17 @@
                 Завантажити більше файлів
               </button>
             </div>
-            <input type="file" id="media-upload" name="files" multiple accept="image/*,video/*" class="file-input">
+            <input type="file" id="media-upload" name="files" multiple accept="image/*" class="file-input">
           </div>
         </div>
 
-        <div class="form-section">
-          <label>Опції ШІ-аналізу</label>
-          <div class="ai-options">
-            <div class="toggle-option">
-              <span>Розпізнавання об'єктів</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-object-detection" name="object_detection" {% if marker.object_detection %}checked{% endif %}>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="toggle-option">
-              <span>Виявлення маскування</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-camouflage" name="camouflage_detection" {% if marker.camouflage_detection %}checked{% endif %}>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="toggle-option">
-              <span>Оцінка пошкоджень</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-damage" name="damage_assessment" {% if marker.damage_assessment %}checked{% endif %}>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="toggle-option">
-              <span>Тепловий аналіз</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-thermal" name="thermal_analysis" {% if marker.thermal_analysis %}checked{% endif %}>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <!-- Hidden inputs to preserve AI processing settings -->
+        <input type="hidden" id="object-detection" name="object_detection" value="{{ marker.object_detection|yesno:'on,' }}">
+        <input type="hidden" id="camouflage-detection" name="camouflage_detection" value="{{ marker.camouflage_detection|yesno:'on,' }}">
+        <input type="hidden" id="damage-assessment" name="damage_assessment" value="{{ marker.damage_assessment|yesno:'on,' }}">
+        <input type="hidden" id="thermal-analysis" name="thermal_analysis" value="{{ marker.thermal_analysis|yesno:'on,' }}">
+        <input type="hidden" id="military-detection" name="military_detection" value="{{ marker.military_detection|yesno:'on,' }}">
+        <input type="hidden" id="emergency-recognition" name="emergency_recognition" value="{{ marker.emergency_recognition|yesno:'on,' }}">
 
         <div class="form-section verification-section">
           <div class="verification-header">

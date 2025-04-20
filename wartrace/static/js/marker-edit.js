@@ -11,6 +11,44 @@ document.addEventListener('DOMContentLoaded', function() {
   const pathParts = window.location.pathname.split('/');
   const markerId = pathParts[pathParts.indexOf('marker') + 1];
   
+  // Check if we're in explicit reprocessing mode from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const isExplicitReprocessMode = urlParams.get('reprocess') === 'true';
+  
+  // Always treat as reprocessing mode even if not explicitly specified
+  const isReprocessMode = true;
+  
+  // Add visual indication about reprocessing mode
+  const statusElement = document.querySelector('.app-header .status');
+  if (statusElement) {
+    statusElement.textContent = isExplicitReprocessMode ? 
+      'Наживо • Режим переобробки' :
+      'Наживо • Режим редагування і оновлення';
+  }
+  
+  // Update save button text
+  const saveButton = document.getElementById('save-marker');
+  if (saveButton) {
+    saveButton.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+      </svg>
+      Зберегти і оновити аналіз
+    `;
+  }
+  
+  // Always show the reprocessing hint
+  const hintElement = document.getElementById('reprocessingHint');
+  if (hintElement) {
+    // Adjust the hint text based on whether it's explicit reprocessing
+    if (isExplicitReprocessMode) {
+      hintElement.innerHTML = '<strong>Режим переобробки:</strong> Після збереження змін, всі зображення маркера будуть заново оброблені з поточними моделями ШІ. Старі результати детекції будуть замінені.';
+    } else {
+      hintElement.innerHTML = '<strong>Оновлення аналізу:</strong> Після збереження змін, всі зображення маркера будуть оброблені з поточними моделями ШІ, якщо включені опції ШІ-аналізу.';
+    }
+    hintElement.classList.add('visible');
+  }
+  
   // Get coordinates from form
   const initialLat = parseFloat(document.getElementById('latitude').value);
   const initialLng = parseFloat(document.getElementById('longitude').value);
@@ -161,6 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setMarkerAt(lat, lng);
   });
   
+  // Initialize uploadedFiles as empty array
+  let uploadedFiles = [];
+
   // Handle file upload
   document.getElementById('trigger-upload').addEventListener('click', function() {
     document.getElementById('media-upload').click();
@@ -171,32 +212,69 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (files.length === 0) return;
     
-    // Display each selected file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
+    // Add new files to existing uploadedFiles array
+    const newFiles = Array.from(files).filter(file => 
+      file.type.startsWith('image/') || file.type.startsWith('video/')
+    );
+    uploadedFiles = [...uploadedFiles, ...newFiles];
+    
+    // Refresh preview to add new files
+    const mediaPreview = document.getElementById('media-preview');
+    
+    // Process and add each file to the preview
+    newFiles.forEach(file => {
+      const previewItem = document.createElement('div');
+      previewItem.className = 'media-preview-item';
       
-      reader.onload = function(event) {
-        const previewItem = document.createElement('div');
-        previewItem.className = 'media-preview-item';
-        
-        if (file.type.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.src = event.target.result;
-          previewItem.appendChild(img);
-        } else if (file.type.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.src = event.target.result;
-          video.controls = true;
-          previewItem.appendChild(video);
+      // Add delete button for new files
+      const deleteBtn = document.createElement('div');
+      deleteBtn.className = 'media-delete-btn';
+      deleteBtn.innerHTML = '✕';
+      deleteBtn.onclick = function(e) {
+        e.stopPropagation();
+        const index = uploadedFiles.indexOf(file);
+        if (index > -1) {
+          uploadedFiles.splice(index, 1);
+          previewItem.remove();
+          updateFileInput();
         }
-        
-        document.getElementById('media-preview').appendChild(previewItem);
       };
+      previewItem.appendChild(deleteBtn);
       
-      reader.readAsDataURL(file);
-    }
+      // Create image preview based on file type
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        previewItem.appendChild(img);
+      } else if (file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        video.controls = true;
+        previewItem.appendChild(video);
+      }
+      
+      mediaPreview.appendChild(previewItem);
+    });
+    
+    // Update the file input to include all files
+    updateFileInput();
+    
+    // Clear the input so the same files can be selected again if needed
+    this.value = '';
   });
+  
+  function updateFileInput() {
+    // Create a new DataTransfer object
+    const dataTransfer = new DataTransfer();
+    
+    // Add all files to the DataTransfer object
+    uploadedFiles.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    
+    // Set the new file list to the file input
+    document.getElementById('media-upload').files = dataTransfer.files;
+  }
   
   // Handle existing media delete buttons
   const mediaDeleteButtons = document.querySelectorAll('.media-delete-btn');
@@ -269,7 +347,55 @@ document.addEventListener('DOMContentLoaded', function() {
     // Using FormData to handle file uploads
     const formData = new FormData(this);
     
-    // Send AJAX request to update marker
+    // Add all the newly uploaded files
+    if (uploadedFiles.length > 0) {
+      // Remove any existing file input values
+      if (formData.has('files')) {
+        formData.delete('files');
+      }
+      
+      // Add each file individually
+      uploadedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+    }
+    
+    // AI options that require processing
+    const aiOptionFields = [
+      'object_detection',
+      'camouflage_detection',
+      'damage_assessment',
+      'thermal_analysis'
+    ];
+    
+    // Check if any AI options are enabled
+    let hasAiOptions = false;
+    
+    // Process each AI option field and update FormData
+    aiOptionFields.forEach(field => {
+      const element = document.getElementById(`toggle-${field.replace('_', '-')}`);
+      if (element) {
+        const isChecked = element.checked;
+        formData.set(field, isChecked);
+        if (isChecked) {
+          hasAiOptions = true;
+        }
+      }
+    });
+    
+    // Always force reprocessing
+    formData.append('force_reprocess', 'true');
+    
+    // Show warning for no AI options
+    if (!hasAiOptions) {
+      if (!confirm('Жодні опції ШІ-аналізу не вибрані. Продовжити без обробки ШІ?')) {
+        return; // Stop submission if user cancels
+      }
+    }
+    
+    showNotification('Зберігаємо зміни маркера...');
+    
+    // Update the marker first
     fetch(`/content/marker/${markerId}/edit/submit/`, {
       method: 'POST',
       body: formData,
@@ -277,20 +403,67 @@ document.addEventListener('DOMContentLoaded', function() {
         'X-CSRFToken': csrftoken
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
-        showNotification('Marker updated successfully!');
-        // Redirect to marker detail page after 2 seconds
-        setTimeout(() => {
-          window.location.href = data.redirect || `/content/marker/${markerId}/`;
-        }, 1000);
+        if (hasAiOptions) {
+          showNotification('Маркер оновлено! Запускаємо обробку всіх зображень...');
+          
+          // Explicitly run AI processing for all images with current models
+          return fetch(`/detection/api/markers/${markerId}/auto-process/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+              process_new_only: false,
+              replace_existing: true
+            })
+          });
+        } else {
+          // No AI options selected, just redirect
+          showNotification('Маркер оновлено (без обробки ШІ).');
+          setTimeout(() => {
+            window.location.href = data.redirect || `/content/marker/${markerId}/`;
+          }, 1000);
+          return null;
+        }
       } else {
-        showNotification('Error: ' + data.message);
+        throw new Error(data.message || 'Failed to update marker');
       }
     })
+    .then(response => {
+      if (response) {
+        // This is the response from the AI processing API
+        return response.json();
+      }
+      return null;
+    })
+    .then(processingData => {
+      if (processingData) {
+        if (processingData.success) {
+          showNotification('Аналіз ШІ запущено. Результати будуть доступні незабаром.');
+        } else {
+          console.error('Processing error:', processingData);
+          showNotification(`Помилка обробки: ${processingData.message || 'Невідома помилка'}`);
+        }
+        
+        // Redirect to marker detail after AI processing is initiated
+        setTimeout(() => {
+          window.location.href = `/content/marker/${markerId}/`;
+        }, 2000);
+      }
+      // If processingData is null, we've already redirected in the previous step
+    })
     .catch(error => {
-      showNotification('Error: ' + error.message);
+      console.error('Error in form submission:', error);
+      showNotification('Помилка: ' + error.message);
     });
   });
   

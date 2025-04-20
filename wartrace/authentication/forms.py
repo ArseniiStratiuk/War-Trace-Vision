@@ -23,17 +23,26 @@ class UserRegistrationForm(forms.ModelForm):
             'first_name': "Ваше ім'я",
             'last_name': "Ваше прізвище",
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name in self.Meta.fields:
             self.fields[field_name].required = True
         self.fields['category'].required = True
-    
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("This email is already registered.")
+        category = self.cleaned_data.get('category')
+
+        users_with_email = User.objects.filter(email=email)
+
+        for user in users_with_email:
+            try:
+                if user.profile.category == category:
+                    raise forms.ValidationError("Цей email вже зареєстровано для цієї категорії.")
+            except UserProfile.DoesNotExist:
+                continue
+
         return email
 
     def clean_password2(self):

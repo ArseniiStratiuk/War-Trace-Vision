@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>War Trace Vision - Детальний перегляд</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/map.css' %}" />
   <link rel="stylesheet" href="{% static 'css/marker-detail.css' %}" />
 </head>
@@ -20,7 +21,7 @@
   </div>
 
   <!-- Back Button -->
-  <div class="back-button" onclick="window.location.href='{% url 'index' %}'">
+  <div class="back-button" onclick="window.location.href='{% url 'map' %}'">
     <svg viewBox="0 0 24 24">
       <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
     </svg>
@@ -98,26 +99,62 @@
         <div class="ai-analysis-result">
           {% if marker.object_detection %}
           <div class="ai-analysis-item">
-            <h4>Класифікація об'єкта <span class="ai-detection-score">{{ marker.confidence }}%</span></h4>
-            <p>{{ marker.category|title }} з {% if marker.damage_assessment %}серйозними пошкодженнями{% else %}виявленими особливостями{% endif %}</p>
+            <h4>Розпізнавання об'єктів</h4>
+            <p>Виявлення загальних об'єктів на зображенні (люди, транспорт, будівлі та ін.)</p>
+          </div>
+          {% endif %}
+
+          {% if marker.camouflage_detection %}
+          <div class="ai-analysis-item">
+            <h4>Військова техніка</h4>
+            <p>Виявлення військової техніки та об'єктів (танки, БТР, солдати та ін.)</p>
           </div>
           {% endif %}
 
           {% if marker.damage_assessment %}
           <div class="ai-analysis-item">
-            <h4>Оцінка пошкоджень <span class="ai-detection-score">{{ marker.confidence|add:"-2" }}%</span></h4>
-            <p>Виявлено {% if marker.confidence > 90 %}повне структурне руйнування{% elif marker.confidence > 75 %}значні пошкодження{% else %}часткові пошкодження{% endif %}</p>
+            <h4>Оцінка пошкоджень</h4>
+            <p>Аналіз рівня пошкоджень будівель та інфраструктури</p>
           </div>
           {% endif %}
-
-          {% if marker.camouflage_detection or marker.thermal_analysis %}
+          
+          {% if marker.thermal_analysis %}
           <div class="ai-analysis-item">
-            <h4>Аналіз впливу <span class="ai-detection-score">{{ marker.confidence|add:"-5" }}%</span></h4>
-            <p>{% if marker.category == 'infrastructure' %}Критичний транспортний маршрут пошкоджено{% elif marker.category == 'military' %}Виявлено військову активність{% elif marker.category == 'civilian' %}Цивільна інфраструктура пошкоджена{% else %}Виявлено значний вплив на місцевість{% endif %}</p>
+            <h4>Надзвичайні ситуації</h4>
+            <p>Виявлення пожеж, затоплень та інших надзвичайних ситуацій</p>
           </div>
           {% endif %}
+          
+          <!-- AI detection actions - add "process again" button -->
+          <div class="ai-analysis-actions">
+            <a href="{% url 'detection:marker_results' marker.id %}" class="btn btn-primary">
+              <i class="fas fa-eye"></i> Переглянути AI результати
+            </a>
+            
+            {% if user.is_authenticated and marker.files.count > 0 and marker.user == user or user.is_staff %}
+            <button id="reprocess-analysis-btn" class="btn btn-secondary">
+              <i class="fas fa-sync"></i> Обробити знову
+            </button>
+            {% endif %}
+          </div>
         </div>
       </div>
+      {% endif %}
+
+      <!-- Add AI processing button if marker has files but no analyses yet -->
+      {% if user.is_authenticated and marker.files.count > 0 and not marker.object_detection and not marker.camouflage_detection and not marker.damage_assessment and not marker.thermal_analysis %}
+      {% if marker.user == user or user.is_staff %}
+      <div class="detail-section">
+        <h3>ШІ аналіз</h3>
+        <div class="ai-analysis-empty">
+          <p>Цей маркер ще не проаналізовано за допомогою ШІ. Запустіть аналіз, щоб виявити об'єкти, військову техніку та оцінити пошкодження.</p>
+          
+          <button id="start-analysis-btn" class="btn btn-primary">
+            <i class="fas fa-cogs"></i> Запустити аналіз
+          </button>
+        </div>
+      </div>
+      {% endif %}
       {% endif %}
 
       <div class="detail-section">
@@ -148,7 +185,7 @@
           {% endfor %}
           
           {% if user.is_authenticated and marker.user == user or user.is_staff %}
-          <form id="add-media-form" method="post" action="{% url 'add_media' marker.id %}" enctype="multipart/form-data" style="display: none;">
+          <form id="add-media-form" method="post" action="{% url 'content:add_media' marker.id %}" enctype="multipart/form-data" style="display: none;">
             {% csrf_token %}
             <input type="file" name="file" id="media-file-input" multiple>
           </form>
@@ -184,7 +221,6 @@
             </div>
             <p class="comment-text">{{ comment.text }}</p>
             <div class="comment-actions">
-              <button class="comment-reply-btn">Відповісти</button>
               <button class="comment-upvote-btn" data-id="{{ comment.id }}">
                 <svg viewBox="0 0 24 24">
                   <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
@@ -203,7 +239,7 @@
         {% if user.is_authenticated %}
         <!-- Comment form and functionality -->
         <div class="comment-form">
-          <form id="comment-form" method="post" action="{% url 'add_comment' marker.id %}">
+          <form id="comment-form" method="post" action="{% url 'content:add_comment' marker.id %}">
             {% csrf_token %}
             <textarea name="text" placeholder="Додати коментар..." required></textarea>
             <div class="comment-form-actions">
@@ -224,7 +260,7 @@
 
     <div class="action-buttons">
       {% if user.is_authenticated and marker.user == user or user.is_staff %}
-      <a href="{% url 'edit_marker' marker.id %}" class="action-btn edit-btn">
+      <a href="{% url 'content:edit_marker' marker.id %}" class="action-btn edit-btn">
         <svg viewBox="0 0 24 24">
           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
         </svg>
@@ -282,6 +318,52 @@
       </div>
       <img class="modal-img" id="modal-image">
       <div id="modal-caption"></div>
+    </div>
+  </div>
+
+  <!-- Detection Options Modal -->
+  <div id="detection-modal" class="modal detection-options-modal">
+    <div class="detection-modal-content">
+      <span class="close detection-close">&times;</span>
+      <h3>Оберіть типи ШІ аналізу</h3>
+      <p>Виберіть, які типи аналізу застосувати до зображень у цьому маркері:</p>
+      
+      <form id="detection-options-form">
+        <div class="detection-option">
+          <input type="checkbox" id="object_detection" name="object_detection" checked>
+          <label for="object_detection">
+            <span class="detection-option-title">Розпізнавання об'єктів</span>
+            <span class="detection-option-desc">Виявлення загальних об'єктів на зображенні (люди, транспорт, будівлі та ін.)</span>
+          </label>
+        </div>
+        
+        <div class="detection-option">
+          <input type="checkbox" id="military_detection" name="military_detection" checked>
+          <label for="military_detection">
+            <span class="detection-option-title">Військова техніка</span>
+            <span class="detection-option-desc">Виявлення військової техніки та об'єктів (танки, БТР, солдати та ін.)</span>
+          </label>
+        </div>
+        
+        <div class="detection-actions">
+          <button type="submit" id="start-processing-btn" class="btn btn-primary">Почати аналіз</button>
+          <button type="button" id="cancel-processing-btn" class="btn btn-secondary">Скасувати</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Processing Status Modal -->
+  <div id="processing-modal" class="modal processing-status-modal">
+    <div class="processing-modal-content">
+      <h3>Обробка зображень</h3>
+      <p>Будь ласка, зачекайте, триває ШІ аналіз зображень...</p>
+      
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+      
+      <p id="processing-status">Ініціалізація аналізу...</p>
     </div>
   </div>
 
@@ -353,8 +435,39 @@
           const mediaGallery = document.querySelector('.media-gallery');
           mediaGallery.appendChild(loadingIndicator);
           
-          // Submit the form
-          document.getElementById('add-media-form').submit();
+          // Submit the form using AJAX to prevent page reload
+          const form = document.getElementById('add-media-form');
+          const formData = new FormData(form);
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Instead of reloading the page, update the media gallery
+              loadingIndicator.remove();
+              
+              // Reload the page to show the updated media
+              location.reload();
+            } else {
+              // Remove loading indicator and show error
+              loadingIndicator.remove();
+              alert('Error uploading files: ' + data.message);
+            }
+          })
+          .catch(error => {
+            // Remove loading indicator and show error
+            loadingIndicator.remove();
+            alert('Error uploading files: ' + error);
+          });
+          
+          // Clear the input so the same files can be selected again if needed
+          this.value = '';
         }
       });
     }
@@ -476,7 +589,7 @@
           })
           .then(data => {
             if(data.success) {
-              window.location.href = '{% url "index" %}';
+              window.location.href = '{% url "map" %}';
             } else {
               alert('Помилка: ' + data.message);
             }
@@ -711,6 +824,163 @@
       // Apply dark mode to mini map
       document.querySelector('.leaflet-layer').style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
     }
+
+    // Detection processing functionality
+    const startAnalysisBtn = document.getElementById('start-analysis-btn');
+    const reprocessAnalysisBtn = document.getElementById('reprocess-analysis-btn');
+    const detectionModal = document.getElementById('detection-modal');
+    const processingModal = document.getElementById('processing-modal');
+    const detectionCloseBtn = document.querySelector('.detection-close');
+    const detectionForm = document.getElementById('detection-options-form');
+    const cancelProcessingBtn = document.getElementById('cancel-processing-btn');
+    
+    // Show detection options modal when user clicks the start analysis button
+    if (startAnalysisBtn) {
+      startAnalysisBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'block';
+      });
+    }
+    
+    // Show detection options modal when user clicks the reprocess button
+    if (reprocessAnalysisBtn) {
+      reprocessAnalysisBtn.addEventListener('click', function() {
+        // Set the initial state of checkboxes based on marker's current settings
+        document.getElementById('object_detection').checked = {{ marker.object_detection|yesno:"true,false" }};
+        document.getElementById('military_detection').checked = {{ marker.camouflage_detection|yesno:"true,false" }};
+        
+        detectionModal.style.display = 'block';
+      });
+    }
+    
+    // Close detection modal when user clicks the close button
+    if (detectionCloseBtn) {
+      detectionCloseBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'none';
+      });
+    }
+    
+    // Close detection modal when user clicks cancel
+    if (cancelProcessingBtn) {
+      cancelProcessingBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'none';
+      });
+    }
+    
+    // Close modal when clicking outside the content
+    window.addEventListener('click', function(event) {
+      if (event.target === detectionModal) {
+        detectionModal.style.display = 'none';
+      }
+      if (event.target === processingModal) {
+        // Don't allow closing processing modal by clicking outside
+      }
+    });
+    
+    // Handle form submission and start processing
+    if (detectionForm) {
+      detectionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get selected detection types
+        const object_detection = document.getElementById('object_detection').checked;
+        const military_detection = document.getElementById('military_detection').checked;
+        
+        // Make sure at least one type is selected
+        if (!object_detection && !military_detection) {
+          alert('Будь ласка, оберіть хоча б один тип аналізу');
+          return;
+        }
+        
+        // Close detection options modal and show processing modal
+        detectionModal.style.display = 'none';
+        processingModal.style.display = 'block';
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('object_detection', object_detection ? 'on' : 'off');
+        formData.append('military_detection', military_detection ? 'on' : 'off');
+        
+        // Update marker on backend with selected detection types and start processing
+        fetch(`/detection/api/markers/{{ marker.id }}/process/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Start polling for status
+            document.getElementById('processing-status').textContent = 'Обробка розпочата...';
+            pollProcessingStatus();
+          } else {
+            processingModal.style.display = 'none';
+            alert('Помилка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          processingModal.style.display = 'none';
+          console.error('Error:', error);
+          alert('Сталася помилка під час запуску обробки');
+        });
+      });
+    }
+    
+    // Poll for processing status
+    function pollProcessingStatus() {
+      const statusUrl = `/detection/markers/{{ marker.id }}/status/`;
+      const progressBar = document.querySelector('.progress-bar');
+      const statusText = document.getElementById('processing-status');
+      
+      // Check status every 2 seconds
+      const pollInterval = setInterval(() => {
+        fetch(statusUrl)
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'completed') {
+              // Processing completed
+              clearInterval(pollInterval);
+              progressBar.style.width = '100%';
+              statusText.textContent = 'Обробка завершена!';
+              
+              // Redirect to results page after a short delay
+              setTimeout(() => {
+                window.location.href = `/detection/markers/{{ marker.id }}/results/`;
+              }, 1000);
+            } 
+            else if (data.status === 'error') {
+              // Error occurred
+              clearInterval(pollInterval);
+              statusText.textContent = 'Помилка: ' + (data.result ? data.result.message : 'Невідома помилка');
+              
+              // Allow closing the modal after error
+              setTimeout(() => {
+                processingModal.style.display = 'none';
+                alert('Під час обробки сталася помилка. Спробуйте ще раз пізніше.');
+              }, 3000);
+            }
+            else if (data.status === 'processing') {
+              // Update progress
+              const progress = data.progress || 0;
+              progressBar.style.width = `${progress}%`;
+              statusText.textContent = `Обробка: ${progress}% завершено`;
+            }
+            else if (data.status === 'idle') {
+              // Processing not started yet
+              statusText.textContent = 'Очікування початку обробки...';
+            }
+          })
+          .catch(error => {
+            console.error('Error polling status:', error);
+          });
+      }, 2000);
+    }
   </script>
 
   <!-- Add this CSS after your existing stylesheet links -->
@@ -857,6 +1127,262 @@
     
     .nav-btn:hover {
       background: rgba(0,0,0,0.8);
+    }
+
+    /* Detection Modal Styles */
+    .detection-options-modal .detection-modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .detection-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .detection-close:hover {
+      color: #333;
+    }
+    
+    .detection-option {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    
+    .detection-option input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    
+    .detection-option label {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .detection-option-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .detection-option-desc {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .detection-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    
+    .detection-actions button {
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .detection-actions .btn-primary {
+      background-color: #4285F4;
+      color: white;
+    }
+    
+    .detection-actions .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    /* Processing Status Modal */
+    .processing-status-modal .processing-modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .progress-container {
+      width: 100%;
+      height: 20px;
+      background-color: #f1f1f1;
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      width: 5%;
+      background-color: #4285F4;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+    
+    #processing-status {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    /* Dark mode support */
+    body.dark-mode .detection-modal-content,
+    body.dark-mode .processing-modal-content {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .detection-close {
+      color: #ccc;
+    }
+    
+    body.dark-mode .detection-close:hover {
+      color: #fff;
+    }
+    
+    body.dark-mode .detection-option {
+      background-color: #444;
+    }
+    
+    body.dark-mode .detection-option-desc {
+      color: #ccc;
+    }
+    
+    body.dark-mode .detection-actions .btn-secondary {
+      background-color: #555;
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .progress-container {
+      background-color: #444;
+    }
+    
+    body.dark-mode #processing-status {
+      color: #ccc;
+    }
+
+    /* Button and AI Analysis Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn i {
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #4285F4 !important;
+      color: white !important;
+      box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+    }
+    
+    .btn-primary:hover {
+      background-color: #3367d6 !important;
+      box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5 !important;
+      color: #555 !important;
+      border: 1px solid #ddd !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e8e8e8 !important;
+      color: #333 !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* AI Analysis section */
+    .ai-analysis-result {
+      background-color: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+    }
+    
+    .ai-analysis-empty {
+      background-color: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .ai-analysis-empty p {
+      margin-bottom: 15px;
+    }
+    
+    .ai-analysis-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    /* Dark mode styles for buttons */
+    body.dark-mode .btn-primary {
+      background-color: #4285F4 !important;
+      color: white !important;
+      box-shadow: 0 2px 5px rgba(66, 133, 244, 0.2);
+    }
+    
+    body.dark-mode .btn-primary:hover {
+      background-color: #5c9aff !important;
+      box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+    }
+    
+    body.dark-mode .btn-secondary {
+      background-color: #3a3a3a !important;
+      color: #ddd !important;
+      border-color: #555 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    body.dark-mode .btn-secondary:hover {
+      background-color: #444 !important;
+      color: #fff !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .ai-analysis-result,
+    body.dark-mode .ai-analysis-empty {
+      background-color: #333;
+      color: #eee;
+    }
+    
+    body.dark-mode .ai-analysis-item h4 {
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .ai-analysis-item p {
+      color: #ccc;
     }
   </style>
 </body>

@@ -40,11 +40,7 @@
                     <td>{{ req.name }}</td>
                     <td>{{ req.description }}</td>
                     <td>{{ req.aproximate_price }}</td>
-                    {% if req.status == 'in_progress' and request_form %}
-                    <td><a href="{% url 'profile' req.volunteer.id %}">{{ req.get_status_display }}</a><br><a href="{% url 'req_ready' req.id %}">Готово</a></td>
-                    {% else %}
-                    <td>{{ req.get_status_display }}</td>
-                    {% endif %}
+                    <td>{{ req.get_status_display }}<br>{% if visitor.pk == req.volunteer.pk or visitor.pk == req.author.pk %}<a href="{% url 'chat:start_chat' req.id %}">Написати</a>{% endif %}</td>
                 </tbody>
                 {% endfor %}
             </table>
@@ -56,6 +52,7 @@
 
     <div class="bottom-menu">
         <a href="{% url 'map' %}">Карта 🔥</a>
+        <a href="{% url 'volunteer_app:chat_history' %}">🕓 Історія чатів</a>
         {% if not request_form %}
         <a href="{% url 'personal_page' %}">Особистий кабінет 👤</a>
         {% endif %}

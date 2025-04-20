@@ -43,13 +43,6 @@ const markers = L.layerGroup().addTo(map);
 // Layer for drawing features
 const drawnItems = new L.FeatureGroup().addTo(map);
 
-// Helper function to truncate text
-function truncateText(text, maxLength) {
-  if (!text) return '';
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
-}
-
 // Ukrainian translations for marker tooltips
 const translations = {
   confidence: 'Достовірність',
@@ -159,11 +152,10 @@ function createMarker(item) {
       `<span class="status-ai-detected">${translations.aiDetected}</span>` : 
       `<span class="status-unverified">${translations.unverified}</span>`);
   
-  // Truncate description to 60 characters
-  const truncatedDescription = truncateText(item.description, 60);
-  
-  // Truncate source to 30 characters
-  const truncatedSource = truncateText(item.source, 30);
+  // Simple truncation with character limit - more reliable
+  const truncatedTitle = item.title && item.title.length > 29 ? item.title.substring(0, 29) + '...' : item.title || '';
+  const truncatedDescription = item.description && item.description.length > 70 ? item.description.substring(0, 70) + '...' : item.description || '';
+  const truncatedSource = item.source && item.source.length > 30 ? item.source.substring(0, 30) + '...' : item.source || '';
 
   // Get category name in Ukrainian
   const categoryNames = {
@@ -184,7 +176,7 @@ function createMarker(item) {
     <div class="tooltip">
       ${thumbnailHtml}
       <div class="tooltip-header">
-        <h3 class="tooltip-title">${item.title}</h3>
+        <h3 class="tooltip-title" title="${item.title}">${truncatedTitle}</h3>
         <div class="tooltip-meta">
           ${verificationStatus}
           <span class="category-tag">${categoryName}</span>
@@ -198,14 +190,46 @@ function createMarker(item) {
     </div>
   `;
   
-  marker.bindTooltip(tooltipContent, {
-    permanent: false,
-    direction: 'top',
-    offset: [0, -10],
-    opacity: 1
+  // Calculate position for tooltip based on screen position
+  marker.on('add', function() {
+    // Remove any existing tooltips from this marker
+    if (marker.getTooltip()) {
+      marker.unbindTooltip();
+    }
+    
+    // Determine best direction for tooltip
+    // First try to get marker's pixel position on screen
+    setTimeout(() => {
+      try {
+        const markerPos = map.latLngToContainerPoint(marker.getLatLng());
+        const mapHeight = map.getSize().y;
+        
+        // If marker is in top third of screen, position tooltip below
+        const direction = markerPos.y < (mapHeight / 3) ? 'bottom' : 'top';
+        
+        marker.bindTooltip(tooltipContent, {
+          permanent: false,
+          direction: direction,
+          offset: direction === 'bottom' ? [0, 10] : [0, -10],
+          opacity: 1,
+          className: 'marker-tooltip',
+          interactive: true
+        });
+      } catch (e) {
+        // Fallback to default if there's an error
+        marker.bindTooltip(tooltipContent, {
+          permanent: false,
+          direction: 'top',
+          offset: [0, -10],
+          opacity: 1,
+          className: 'marker-tooltip',
+          interactive: true
+        });
+      }
+    }, 100);
   });
   
-  // Add click handler to view marker details - fix URL path to match actual URL configuration
+  // Add click handler to view marker details
   marker.on('click', function() {
     window.location.href = `/content/marker/${item.id}/`;
   });
@@ -1278,6 +1302,60 @@ document.addEventListener('DOMContentLoaded', function() {
   `;
   
   document.head.appendChild(style);
+  
+  // Add additional CSS for improved tooltips
+  const additionalStyles = document.createElement('style');
+  additionalStyles.textContent = `
+    /* Improved tooltip positioning and boundaries */
+    .smart-tooltip {
+      max-width: 280px !important;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .smart-tooltip .tooltip {
+      width: 100%;
+    }
+    
+    .leaflet-tooltip-top:before,
+    .leaflet-tooltip-bottom:before,
+    .leaflet-tooltip-left:before,
+    .leaflet-tooltip-right:before {
+      position: absolute;
+      pointer-events: none;
+      border: 6px solid transparent;
+      background: transparent;
+      content: "";
+    }
+
+    /* Ensure tooltip title stays within boundaries */
+    .tooltip-title {
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: bold;
+    }
+    
+    /* Make tooltips look better when they open in different directions */
+    .leaflet-tooltip-bottom {
+      margin-top: 6px;
+    }
+    
+    .leaflet-tooltip-top {
+      margin-top: -6px;
+    }
+    
+    .leaflet-tooltip-left {
+      margin-left: -6px;
+    }
+    
+    .leaflet-tooltip-right {
+      margin-left: 6px;
+    }
+  `;
+  
+  document.head.appendChild(additionalStyles);
 });
 
 // Helper function to show toast notifications
