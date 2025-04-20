@@ -4,13 +4,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Чат - MilitaryTinder</title>
     <link rel="stylesheet" href="{% static 'css/tinder.css' %}">
+=======
+    <title>Чат - Волонтерський додаток</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #C8E6C9;
+            --text-color: #212121;
+            --text-secondary: #757575;
+            --divider-color: #BDBDBD;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-menu {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .top-menu a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .top-menu a:before {
+            content: "←";
+            margin-right: 5px;
+            font-size: 1.2rem;
+        }
+        
+        .top-menu h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message p {
+            margin-bottom: 5px;
+        }
+        
+        .message small {
+            font-size: 12px;
+            opacity: 0.7;
+            display: block;
+            text-align: right;
+        }
+        
+        .sent {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .received {
+            align-self: flex-start;
+            background-color: #e0e0e0;
+            color: var(--text-color);
+            border-bottom-left-radius: 5px;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--divider-color);
+            border-radius: var(--border-radius);
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            align-self: flex-end;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        @media (max-width: 600px) {
+            .message {
+                max-width: 90%;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+>>>>>>> 65f5b223e13105cb446617c1ad576df99654ac19
 </head>
 <body>
     <div class="top-menu">
         <a href="{% url 'chat_history' %}">Назад</a>
         <h2>{{ chat.request.name }}</h2>
+<<<<<<< HEAD
+=======
+        <div></div> <!-- Empty div for flex spacing -->
+>>>>>>> 65f5b223e13105cb446617c1ad576df99654ac19
     </div>
 
     <main>

@@ -2,13 +2,111 @@
 {% load static %}
 
 {% block content %}
+<<<<<<< HEAD
+=======
+<style>
+    :root {
+        --primary-color: #4CAF50;
+        --primary-dark: #388E3C;
+        --primary-light: #C8E6C9;
+        --text-color: #212121;
+        --text-secondary: #757575;
+        --divider-color: #BDBDBD;
+        --background-color: #f5f5f5;
+        --card-color: #ffffff;
+        --border-radius: 8px;
+        --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .send-message-container {
+        background-color: var(--card-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 25px;
+        max-width: 600px;
+        margin: 30px auto;
+    }
+    
+    .send-message-container h2 {
+        color: var(--primary-dark);
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 24px;
+    }
+    
+    .send-message-container p {
+        margin-bottom: 20px;
+        font-size: 16px;
+        background-color: var(--primary-light);
+        padding: 10px;
+        border-radius: var(--border-radius);
+    }
+    
+    .send-message-container p strong {
+        color: var(--primary-dark);
+    }
+    
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--divider-color);
+        border-radius: var(--border-radius);
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+        font-size: 16px;
+    }
+    
+    button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        align-self: flex-end;
+    }
+    
+    button:hover {
+        background-color: var(--primary-dark);
+    }
+    
+    @media (max-width: 600px) {
+        .send-message-container {
+            margin: 15px;
+            padding: 15px;
+        }
+        
+        button {
+            width: 100%;
+        }
+    }
+</style>
+
+>>>>>>> 65f5b223e13105cb446617c1ad576df99654ac19
 <div class="send-message-container">
     <h2>Написати автору запиту</h2>
     <p><strong>Запит:</strong> {{ request.name }}</p>
     <form method="post">
         {% csrf_token %}
+<<<<<<< HEAD
         <textarea name="message" placeholder="Введіть повідомлення..." rows="4" required></textarea><br>
         <button type="submit">Надіслати</button>
     </form>
 </div>
 {% endblock %}
+=======
+        <textarea name="message" placeholder="Введіть повідомлення..." rows="4" required></textarea>
+        <button type="submit">Надіслати</button>
+    </form>
+</div>
+{% endblock %}
+>>>>>>> 65f5b223e13105cb446617c1ad576df99654ac19
