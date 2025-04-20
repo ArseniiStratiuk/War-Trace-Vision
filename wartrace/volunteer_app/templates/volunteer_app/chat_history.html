@@ -1,0 +1,238 @@
+<!-- templates/volunteer_app/chat_history.html -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Історія чатів</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            padding: 0;
+        }
+        
+        nav ul li {
+            margin-right: 20px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .chat-list {
+            margin-top: 20px;
+        }
+        
+        .chat-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .chat-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .chat-date {
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .chat-preview {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .chat-meta {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .chat-urgency {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .urgency-висока {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .urgency-середня {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        .urgency-низька {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .chat-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .status-in_progress {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-done {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-in_search {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        .chat-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .view-chat {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .no-chats {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f1f1f1;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Волонтерський додаток</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'volunteer_app:search' %}">Шукати запити</a></li>
+                <li><a href="{% url 'volunteer_app:chat_history' %}">Історія чатів</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h2>Історія чатів</h2>
+        
+        <div class="chat-list">
+            {% if chats %}
+                {% for chat in chats %}
+                    <div class="chat-item">
+                        <div class="chat-header">
+                            <div class="chat-title">{{ chat.request.name }}</div>
+                            <div class="chat-date">{{ chat.updated_at|date:"d.m.Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="chat-meta">
+                            <span class="chat-status status-{{ chat.request.status }}">
+                                {% if chat.request.status == 'in_progress' %}
+                                    В процесі
+                                {% elif chat.request.status == 'done' %}
+                                    Виконано
+                                {% elif chat.request.status == 'in_search' %}
+                                    В пошуку
+                                {% endif %}
+                            </span>
+                            
+                            {% if chat.request.urgency %}
+                                <span class="chat-urgency urgency-{{ chat.request.urgency }}">
+                                    Терміновість: {{ chat.request.urgency }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="chat-preview">
+                            {% with last_message=chat.messages.last %}
+                                {% if last_message %}
+                                    <strong>{{ last_message.sender.username }}:</strong> {{ last_message.text|truncatechars:100 }}
+                                {% else %}
+                                    Немає повідомлень
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="chat-actions">
+                            <div>
+                                {% for participant in chat.participants.all %}
+                                    {% if participant != request.user %}
+                                        <span>Співрозмовник: {{ participant.username }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'chat:chat_detail' chat.id %}" class="view-chat">Переглянути чат</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-chats">
+                    <p>У вас ще немає чатів. Почніть допомагати військовим, щоб почати спілкування.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Волонтерський додаток</p>
+    </footer>
+</body>
+</html>

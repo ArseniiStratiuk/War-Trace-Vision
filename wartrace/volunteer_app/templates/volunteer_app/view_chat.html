@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат - MilitaryTinder</title>
+    <link rel="stylesheet" href="{% static 'css/tinder.css' %}">
+</head>
+<body>
+    <div class="top-menu">
+        <a href="{% url 'chat_history' %}">Назад</a>
+        <h2>{{ chat.request.name }}</h2>
+    </div>
+
+    <main>
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user.profile %}sent{% else %}received{% endif %}">
+                    <p>{{ message.text }}</p>
+                    <small>{{ message.timestamp|time }}</small>
+                </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" action="{% url 'send_message' chat.request.id %}">
+            {% csrf_token %}
+            <textarea name="message" placeholder="Напишіть повідомлення..." required></textarea>
+            <button type="submit">Надіслати</button>
+        </form>
+    </main>
+</body>
+</html>

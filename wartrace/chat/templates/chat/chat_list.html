@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="chat-container">
+    <h1>Історія чатів</h1>
+    
+    <div class="chat-list">
+        {% for chat in chats %}
+        <a href="{% url 'chat:chat_detail' chat.id %}" class="chat-item">
+            <div class="chat-info">
+                <h3>{{ chat.request.name }}</h3>
+                <p>{{ chat.request.category }}</p>
+                {% if chat.messages.last %}
+                <p class="last-message">{{ chat.messages.last.text|truncatechars:50 }}</p>
+                <p class="message-time">{{ chat.messages.last.timestamp|timesince }} тому</p>
+                {% endif %}
+            </div>
+            {% if chat.messages.filter(is_read=False).exclude(sender=request.user).exists %}
+            <span class="unread-badge"></span>
+            {% endif %}
+        </a>
+        {% empty %}
+        <p>У вас поки немає чатів</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

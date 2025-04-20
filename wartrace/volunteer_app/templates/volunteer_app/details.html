@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Деталі запиту - MilitaryTinder</title>
+    <link rel="stylesheet" href="{% static 'css/tinder.css' %}">
+</head>
+<body>
+    <div class="top-menu">Деталі запиту</div>
+
+    <main>
+        <div class="request-details">
+            <h3>{{ request.name }}</h3>
+            <p>{{ request.description }}</p>
+            <p>Терміновість: {{ request.get_urgency_display }}</p>
+
+            <form method="post" action="{% url 'send_message' request.id %}">
+                {% csrf_token %}
+                <textarea name="message" placeholder="Напишіть повідомлення..." required></textarea>
+                <button type="submit">Надіслати</button>
+            </form>
+        </div>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'search' %}">Назад</a>
+    </div>
+</body>
+</html>

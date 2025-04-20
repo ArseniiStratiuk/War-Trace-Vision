@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personal Page</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/personal_page.css' %}">
+</head>
+<body>
+    <header>
+        <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+        <p>{{ user.profile.get_category_display }}</p>
+        <p>{{ user.email }}</p>
+    </header>
+
+    <aside>
+        <div class="contact-info">
+            <h2>Contact info</h2>
+            <p>Email: {{ user.email }}</p>
+            <p>Tel: {{ contacts.phone|default:"Not provided" }}</p>
+            <p>Social: {% if contacts.socials.title and contacts.socials.link %}<a href="{{ contacts.socials.link }}">{{ contacts.socials.title }}</a>{% else %}Not provided{% endif %}</p>
+        </div>
+
+    </aside>
+
+    <main>
+        <div class="archive-section">
+            <h2>Archive</h2>
+            {% if request_data %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Price (грн)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                {% for req in request_data %}
+                <tbody>
+                    <td>{{ req.name }}</td>
+                    <td>{{ req.description }}</td>
+                    <td>{{ req.aproximate_price }}</td>
+                    {% if req.status == 'in_progress' and request_form %}
+                    <td><a href="{% url 'profile' req.volunteer.id %}">{{ req.get_status_display }}</a><br><a href="{% url 'req_ready' req.id %}">Готово</a></td>
+                    {% else %}
+                    <td>{{ req.get_status_display }}</td>
+                    {% endif %}
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>No requests yet.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'map' %}">Карта 🔥</a>
+        {% if not request_form %}
+        <a href="{% url 'personal_page' %}">Особистий кабінет 👤</a>
+        {% endif %}
+    </div>
+</body>
+</html>

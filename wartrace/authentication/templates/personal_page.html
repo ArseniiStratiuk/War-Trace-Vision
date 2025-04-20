@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Особиста сторінка</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/personal_page.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Вітаю, {{ user.first_name }}!</h1>
+        <p>{{ user.profile.get_category_display }}</p>
+        <p>{{ user.email }}</p>
+    </header>
+
+    <aside>
+        <div class="contact-info">
+            <div class="contact-header">
+                <h2>Контакти</h2> 
+                <a href="{% url 'settings' %}" target="_blank" class="settings"><img src="{% static 'settings.png' %}" alt="Settings" width="25"></a>
+            </div>
+            <p>Пошта: {{ user.email }}</p>
+            <p>Телефон: {{ contacts.phone|default:"Не надано" }}</p>
+            <p>Соц. мережі: {% if contacts.socials.title and contacts.socials.link %}<a href="{{ contacts.socials.link }}" target="_blank">{{ contacts.socials.title }}</a>{% else %}Не надано{% endif %}</p>
+        </div>
+
+        {% if request_form %}
+        <div id="add-request-form-container">
+            <h2>Форма створення збору</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ request_form.as_p }}
+                <button type="submit">Додати збір</button>
+            </form>
+        </div>
+        {% endif %}
+    </aside>
+
+    <main>
+        <div class="archive-section">
+            <h2>Архів</h2>
+            {% if request_data %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Заголовок</th>
+                        <th>Опис</th>
+                        <th>Ціна (грн)</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                {% for req in request_data %}
+                <tbody>
+                    <td>{{ req.name }}</td>
+                    <td>{{ req.description }}</td>
+                    <td>{{ req.aproximate_price }}</td>
+                    {% if req.status == 'in_progress' and request_form %}
+                    <td><a href="{% url 'profile' req.volunteer.id %}">{{ req.get_status_display }}</a><br><a href="{% url 'req_ready' req.id %}">Готово</a></td>
+                    {% elif req.status == 'in_progress' %}
+                    <td><a href="{% url 'profile' req.author.id %}">{{ req.get_status_display }}</a></td>
+                    {% else %}
+                    <td>{{ req.get_status_display }}</td>
+                    {% endif %}
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>Ще нема запитів.</p>
+            {% endif %}
+        </div>
+
+        <h2>Мої маркери</h2>
+        {% if not my_markers %}
+        <p>Поки нема маркерів</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Вийти</button>
+        </form>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'map' %}">Карта 🔥</a>
+        {% if not request_form %}
+        <a href="{% url 'volunteer_app:search' %}">Шукати нові збори 👤</a>
+        {% endif %}
+    </div>
+</body>
+</html>

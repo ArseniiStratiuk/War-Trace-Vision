@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="chat-detail-container">
+    <div class="chat-header">
+        <a href="{% url 'chat:chat_list' %}" class="back-button">←</a>
+        <h2>{{ chat.request.name }}</h2>
+    </div>
+    
+    <div class="messages-container" id="messages-container">
+        {% for message in messages %}
+        <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+            <p>{{ message.text }}</p>
+            <span class="message-time">{{ message.timestamp|time }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <form method="post" class="message-form">
+        {% csrf_token %}
+        {{ form.text }}
+        <button type="submit" class="send-button">Надіслати</button>
+    </form>
+</div>
+
+<script>
+    // Автоскрол до останнього повідомлення
+    const container = document.getElementById('messages-container');
+    container.scrollTop = container.scrollHeight;
+</script>
+{% endblock %}

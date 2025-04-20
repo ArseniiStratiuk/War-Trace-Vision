@@ -1,0 +1,3 @@
+# War Trace Vision
+
+**War Trace Vision** is an online platform for documenting war-related destruction using both AI-powered analysis and user collaboration. The system processes satellite and aerial imagery to detect trenches, craters, smoke, and other objects of interest with deep learning (Mask R-CNN) and OpenCV. Users can manually highlight, annotate, and comment on detected areas, ensuring comprehensive documentation. Built with Django and an interactive Leaflet map, the project aims to support humanitarian missions, post-war reconstruction, and historical records by combining Computer Vision with community-driven verification.
