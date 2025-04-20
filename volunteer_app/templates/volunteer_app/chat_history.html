@@ -1,0 +1,310 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Історія чатів - Волонтерський додаток</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #C8E6C9;
+            --text-color: #212121;
+            --text-secondary: #757575;
+            --divider-color: #BDBDBD;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --success-color: #2e7d32;
+            --warning-color: #ff8f00;
+            --danger-color: #c62828;
+            --info-color: #1565c0;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            padding: 0;
+            margin-top: 10px;
+        }
+        
+        nav ul li {
+            margin-right: 20px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        nav ul li a:hover {
+            color: var(--primary-light);
+        }
+        
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+        
+        .chat-list {
+            margin-top: 20px;
+        }
+        
+        .chat-item {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+        
+        .chat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--divider-color);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .chat-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--primary-dark);
+        }
+        
+        .chat-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .chat-preview {
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            background-color: var(--primary-light);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            position: relative;
+        }
+        
+        .chat-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .chat-status, .chat-urgency {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-in_progress {
+            background-color: #e3f2fd;
+            color: var(--info-color);
+        }
+        
+        .status-done {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+        
+        .status-in_search {
+            background-color: #fff8e1;
+            color: var(--warning-color);
+        }
+        
+        .urgency-висока {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+        
+        .urgency-середня {
+            background-color: #fff8e1;
+            color: var(--warning-color);
+        }
+        
+        .urgency-низька {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+        
+        .chat-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .view-chat {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        
+        .view-chat:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .no-chats {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-style: italic;
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--primary-dark);
+            color: white;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 600px) {
+            .chat-actions {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .view-chat {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Волонтерський додаток</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'volunteer_app:search' %}">Шукати запити</a></li>
+                <li><a href="{% url 'volunteer_app:chat_history' %}">Історія чатів</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h2>Історія чатів</h2>
+        
+        <div class="chat-list">
+            {% if chats %}
+                {% for chat in chats %}
+                    <div class="chat-item">
+                        <div class="chat-header">
+                            <div class="chat-title">{{ chat.request.name }}</div>
+                            <div class="chat-date">{{ chat.updated_at|date:"d.m.Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="chat-meta">
+                            <span class="chat-status status-{{ chat.request.status }}">
+                                {% if chat.request.status == 'in_progress' %}
+                                    В процесі
+                                {% elif chat.request.status == 'done' %}
+                                    Виконано
+                                {% elif chat.request.status == 'in_search' %}
+                                    В пошуку
+                                {% endif %}
+                            </span>
+                            
+                            {% if chat.request.urgency %}
+                                <span class="chat-urgency urgency-{{ chat.request.urgency }}">
+                                    Терміновість: {{ chat.request.urgency }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="chat-preview">
+                            {% with last_message=chat.messages.last %}
+                                {% if last_message %}
+                                    <strong>{{ last_message.sender.username }}:</strong> {{ last_message.text|truncatechars:100 }}
+                                {% else %}
+                                    Немає повідомлень
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="chat-actions">
+                            <div>
+                                {% for participant in chat.participants.all %}
+                                    {% if participant != request.user %}
+                                        <span>Співрозмовник: {{ participant.username }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'chat:chat_detail' chat.id %}" class="view-chat">Переглянути чат</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-chats">
+                    <p>У вас ще немає чатів. Почніть допомагати військовим, щоб почати спілкування.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Волонтерський додаток</p>
+    </footer>
+</body>
+</html>

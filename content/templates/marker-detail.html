@@ -1,0 +1,1389 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Trace Vision - Детальний перегляд</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/map.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/marker-detail.css' %}" />
+</head>
+<body>
+  <div id="mini-map"></div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <h1>War Trace Vision</h1>
+    <div class="status">Наживо • Аналізується</div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="back-button" onclick="window.location.href='{% url 'map' %}'">
+    <svg viewBox="0 0 24 24">
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </div>
+
+  <!-- Detail Content Panel -->
+  <div class="detail-panel">
+    <div class="detail-header">
+      <h2 id="marker-title">{{ marker.title }}</h2>
+      <div class="detail-header-badges">
+        <span class="status-{{ marker.verification }}" id="verification-status">
+          {% if marker.verification == 'verified' %}
+            Підтверджено
+          {% elif marker.verification == 'unverified' %}
+            Непідтверджено
+          {% elif marker.verification == 'disputed' %}
+            Оскаржується
+          {% else %}
+            Перевіряється
+          {% endif %}
+        </span>
+        <span class="confidence-badge" id="confidence-score">{{ marker.confidence }}%</span>
+      </div>
+    </div>
+
+    <div class="detail-content">
+      <div class="location-date-container">
+        <div class="detail-location">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span id="marker-coordinates">{{ marker.latitude }}, {{ marker.longitude }}</span>
+        </div>
+        <div class="detail-date">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+          </svg>
+          <span id="marker-date">{{ marker.date|date:"Y-m-d" }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Опис</h3>
+        <p id="marker-description">{{ marker.description }}</p>
+      </div>
+
+      <div class="detail-section">
+        <h3>Категорія</h3>
+        <div class="category-badge" id="marker-category">
+          <div class="category-icon {{ marker.category }}"></div>
+          <span>
+            {% if marker.category == 'infrastructure' %}
+              Інфраструктура
+            {% elif marker.category == 'military' %}
+              Військовий об'єкт
+            {% elif marker.category == 'hazard' %}
+              Небезпека
+            {% elif marker.category == 'residential' %}
+              Житловий об'єкт
+            {% else %}
+              Інше
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Джерело</h3>
+        <p id="marker-source">{{ marker.source }}</p>
+      </div>
+
+      {% if marker.object_detection or marker.camouflage_detection or marker.damage_assessment or marker.thermal_analysis %}
+      <div class="detail-section">
+        <h3>ШІ Аналіз</h3>
+        <div class="ai-analysis-result">
+          {% if marker.object_detection %}
+          <div class="ai-analysis-item">
+            <h4>Розпізнавання об'єктів</h4>
+            <p>Виявлення загальних об'єктів на зображенні (люди, транспорт, будівлі та ін.)</p>
+          </div>
+          {% endif %}
+
+          {% if marker.camouflage_detection %}
+          <div class="ai-analysis-item">
+            <h4>Військова техніка</h4>
+            <p>Виявлення військової техніки та об'єктів (танки, БТР, солдати та ін.)</p>
+          </div>
+          {% endif %}
+
+          {% if marker.damage_assessment %}
+          <div class="ai-analysis-item">
+            <h4>Оцінка пошкоджень</h4>
+            <p>Аналіз рівня пошкоджень будівель та інфраструктури</p>
+          </div>
+          {% endif %}
+          
+          {% if marker.thermal_analysis %}
+          <div class="ai-analysis-item">
+            <h4>Надзвичайні ситуації</h4>
+            <p>Виявлення пожеж, затоплень та інших надзвичайних ситуацій</p>
+          </div>
+          {% endif %}
+          
+          <!-- AI detection actions - add "process again" button -->
+          <div class="ai-analysis-actions">
+            <a href="{% url 'detection:marker_results' marker.id %}" class="btn btn-primary">
+              <i class="fas fa-eye"></i> Переглянути AI результати
+            </a>
+            
+            {% if user.is_authenticated and marker.files.count > 0 and marker.user == user or user.is_staff %}
+            <button id="reprocess-analysis-btn" class="btn btn-secondary">
+              <i class="fas fa-sync"></i> Обробити знову
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Add AI processing button if marker has files but no analyses yet -->
+      {% if user.is_authenticated and marker.files.count > 0 and not marker.object_detection and not marker.camouflage_detection and not marker.damage_assessment and not marker.thermal_analysis %}
+      {% if marker.user == user or user.is_staff %}
+      <div class="detail-section">
+        <h3>ШІ аналіз</h3>
+        <div class="ai-analysis-empty">
+          <p>Цей маркер ще не проаналізовано за допомогою ШІ. Запустіть аналіз, щоб виявити об'єкти, військову техніку та оцінити пошкодження.</p>
+          
+          <button id="start-analysis-btn" class="btn btn-primary">
+            <i class="fas fa-cogs"></i> Запустити аналіз
+          </button>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <div class="detail-section">
+        <h3>Додаткові медіа</h3>
+        <div class="media-gallery">
+          {% for file in marker.files.all %}
+          <div class="media-item">
+            {% if file.file.url|lower|slice:"-4:" == '.jpg' or file.file.url|lower|slice:"-5:" == '.jpeg' or file.file.url|lower|slice:"-4:" == '.png' %}
+            <img src="{{ file.file.url }}" alt="Media {{ forloop.counter }}">
+            {% else %}
+            <div class="media-placeholder">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </div>
+            {% endif %}
+            <span>{{ file.file.name|filename }} ({{ file.uploaded_at|date:"d/m/Y" }})</span>
+          </div>
+          {% empty %}
+          <div class="media-item">
+            <div class="media-placeholder">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </div>
+            <span>Немає медіафайлів (додайте перший)</span>
+          </div>
+          {% endfor %}
+          
+          {% if user.is_authenticated and marker.user == user or user.is_staff %}
+          <form id="add-media-form" method="post" action="{% url 'content:add_media' marker.id %}" enctype="multipart/form-data" style="display: none;">
+            {% csrf_token %}
+            <input type="file" name="file" id="media-file-input" multiple>
+          </form>
+          <button class="add-media-btn" id="add-media-trigger">
+            <svg viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Додати медіа
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="comments-header">
+          <h3>Коментарі ({{ comments|length }})</h3>
+          <button class="sort-comments-btn">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+            </svg>
+            Сортувати
+          </button>
+        </div>
+        <div class="comments-list">
+          {% for comment in comments %}
+          <div class="comment">
+            <div class="comment-header">
+              <span class="comment-author">{{ comment.user.username }}</span>
+              <span class="comment-date">{{ comment.created_at|date:"Y-m-d" }}</span>
+              {% if comment.user.profile.is_verified %}
+              <span class="verified-badge">Експерт</span>
+              {% endif %}
+            </div>
+            <p class="comment-text">{{ comment.text }}</p>
+            <div class="comment-actions">
+              <button class="comment-upvote-btn" data-id="{{ comment.id }}">
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                </svg>
+                {{ comment.votes }}
+              </button>
+            </div>
+          </div>
+          {% empty %}
+          <div class="no-comments">
+            <p>Поки що немає коментарів. Будьте першим, хто залишить коментар!</p>
+          </div>
+          {% endfor %}
+        </div>
+        
+        {% if user.is_authenticated %}
+        <!-- Comment form and functionality -->
+        <div class="comment-form">
+          <form id="comment-form" method="post" action="{% url 'content:add_comment' marker.id %}">
+            {% csrf_token %}
+            <textarea name="text" placeholder="Додати коментар..." required></textarea>
+            <div class="comment-form-actions">
+              <button type="submit" class="submit-comment-btn">Опублікувати</button>
+            </div>
+          </form>
+        </div>
+        {% else %}
+        <div class="comment-form">
+          <textarea placeholder="Увійдіть, щоб залишити коментар" disabled></textarea>
+          <div class="comment-form-actions">
+            <button class="submit-comment-btn" disabled>Увійдіть, щоб коментувати</button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      {% if user.is_authenticated and marker.user == user or user.is_staff %}
+      <a href="{% url 'content:edit_marker' marker.id %}" class="action-btn edit-btn">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        Редагувати
+      </a>
+      {% endif %}
+
+      {% if user.is_authenticated and user.is_staff %}
+      <button class="action-btn verify-btn" data-id="{{ marker.id }}" data-status="{{ marker.verification }}">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        {% if marker.verification == 'verified' %}
+        Скасувати підтвердження
+        {% else %}
+        Підтвердити
+        {% endif %}
+      </button>
+      {% endif %}
+
+      <button class="action-btn share-btn" data-url="{{ request.build_absolute_uri }}">
+        <svg viewBox="0 0 24 24">
+          <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+        </svg>
+        Поділитися
+      </button>
+
+      {% if user.is_authenticated %}
+      <button class="action-btn report-btn" data-id="{{ marker.id }}">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.73 3H8.27L3 8.27v7.46L8.27 21h7.46L21 15.73V8.27L15.73 3zM12 17.3c-.72 0-1.3-.58-1.3-1.3 0-.72.58-1.3 1.3-1.3.72 0 1.3.58 1.3 1.3 0 .72-.58 1.3-1.3 1.3zm1-4.3h-2V7h2v6z"/>
+        </svg>
+        Повідомити
+      </button>
+      {% endif %}
+
+      {% if user.is_authenticated and marker.user == user or user.is_staff %}
+      <button class="action-btn delete-btn" data-id="{{ marker.id }}">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+        Видалити
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Modal image gallery for fullscreen viewing -->
+  <div id="image-modal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-content">
+      <div class="modal-navigation">
+        <button id="prev-btn" class="nav-btn">&lt;</button>
+        <button id="next-btn" class="nav-btn">&gt;</button>
+      </div>
+      <img class="modal-img" id="modal-image">
+      <div id="modal-caption"></div>
+    </div>
+  </div>
+
+  <!-- Detection Options Modal -->
+  <div id="detection-modal" class="modal detection-options-modal">
+    <div class="detection-modal-content">
+      <span class="close detection-close">&times;</span>
+      <h3>Оберіть типи ШІ аналізу</h3>
+      <p>Виберіть, які типи аналізу застосувати до зображень у цьому маркері:</p>
+      
+      <form id="detection-options-form">
+        <div class="detection-option">
+          <input type="checkbox" id="object_detection" name="object_detection" checked>
+          <label for="object_detection">
+            <span class="detection-option-title">Розпізнавання об'єктів</span>
+            <span class="detection-option-desc">Виявлення загальних об'єктів на зображенні (люди, транспорт, будівлі та ін.)</span>
+          </label>
+        </div>
+        
+        <div class="detection-option">
+          <input type="checkbox" id="military_detection" name="military_detection" checked>
+          <label for="military_detection">
+            <span class="detection-option-title">Військова техніка</span>
+            <span class="detection-option-desc">Виявлення військової техніки та об'єктів (танки, БТР, солдати та ін.)</span>
+          </label>
+        </div>
+        
+        <div class="detection-actions">
+          <button type="submit" id="start-processing-btn" class="btn btn-primary">Почати аналіз</button>
+          <button type="button" id="cancel-processing-btn" class="btn btn-secondary">Скасувати</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Processing Status Modal -->
+  <div id="processing-modal" class="modal processing-status-modal">
+    <div class="processing-modal-content">
+      <h3>Обробка зображень</h3>
+      <p>Будь ласка, зачекайте, триває ШІ аналіз зображень...</p>
+      
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+      
+      <p id="processing-status">Ініціалізація аналізу...</p>
+    </div>
+  </div>
+
+  <!-- CSRF Token for AJAX requests -->
+  <script>
+    const csrfToken = '{{ csrf_token }}';
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    // Make minimap responsive
+    const adjustMapHeight = () => {
+      const viewportHeight = window.innerHeight;
+      const mapHeight = Math.max(Math.min(viewportHeight * 0.3, 300), 200);
+      document.getElementById('mini-map').style.height = mapHeight + 'px';
+      
+      // Adjust panel top position to match map height
+      const detailPanel = document.querySelector('.detail-panel');
+      if (detailPanel) {
+        detailPanel.style.top = mapHeight + 'px';
+      }
+    };
+    
+    // Set initial height and adjust on resize
+    adjustMapHeight();
+    window.addEventListener('resize', adjustMapHeight);
+    
+    // Initialize mini map
+    const miniMap = L.map('mini-map', {
+      zoomControl: true,
+      dragging: true,
+      scrollWheelZoom: true
+    }).setView([{{ marker.latitude }}, {{ marker.longitude }}], 15);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors | War Trace Vision',
+      maxZoom: 19
+    }).addTo(miniMap);
+    
+    // Add marker to mini map
+    const markerIcon = L.divIcon({
+      className: 'marker-{{ marker.category }}',
+      iconSize: [12, 12]
+    });
+    
+    L.marker([{{ marker.latitude }}, {{ marker.longitude }}], {
+      icon: markerIcon
+    }).addTo(miniMap);
+    
+    // Force map recalculation to ensure it renders properly
+    setTimeout(function() {
+      miniMap.invalidateSize();
+    }, 100);
+    
+    // Add media upload functionality
+    if(document.getElementById('add-media-trigger')) {
+      document.getElementById('add-media-trigger').addEventListener('click', function() {
+        document.getElementById('media-file-input').click();
+      });
+      
+      document.getElementById('media-file-input').addEventListener('change', function() {
+        if(this.files.length > 0) {
+          // Show loading indicator
+          const loadingIndicator = document.createElement('div');
+          loadingIndicator.className = 'loading-indicator';
+          loadingIndicator.innerHTML = '<svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg> Завантаження...';
+          
+          const mediaGallery = document.querySelector('.media-gallery');
+          mediaGallery.appendChild(loadingIndicator);
+          
+          // Submit the form using AJAX to prevent page reload
+          const form = document.getElementById('add-media-form');
+          const formData = new FormData(form);
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Instead of reloading the page, update the media gallery
+              loadingIndicator.remove();
+              
+              // Reload the page to show the updated media
+              location.reload();
+            } else {
+              // Remove loading indicator and show error
+              loadingIndicator.remove();
+              alert('Error uploading files: ' + data.message);
+            }
+          })
+          .catch(error => {
+            // Remove loading indicator and show error
+            loadingIndicator.remove();
+            alert('Error uploading files: ' + error);
+          });
+          
+          // Clear the input so the same files can be selected again if needed
+          this.value = '';
+        }
+      });
+    }
+    
+    // Handle verification
+    if(document.querySelector('.verify-btn')) {
+      document.querySelector('.verify-btn').addEventListener('click', function() {
+        const markerId = this.getAttribute('data-id');
+        const currentStatus = this.getAttribute('data-status');
+        const newStatus = currentStatus === 'verified' ? 'unverified' : 'verified';
+        
+        fetch(`/content/api/markers/${markerId}/verify/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+            verification: newStatus
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if(data.success) {
+            window.location.reload();
+          } else {
+            alert('Помилка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Сталася помилка під час зміни статусу верифікації');
+        });
+      });
+    }
+    
+    // Handle share button
+    document.querySelector('.share-btn').addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      
+      if (navigator.share) {
+        navigator.share({
+          title: '{{ marker.title }}',
+          url: url
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = url;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        
+        alert('URL скопійовано до буферу обміну');
+      }
+    });
+    
+    // Handle report button
+    if(document.querySelector('.report-btn')) {
+      document.querySelector('.report-btn').addEventListener('click', function() {
+        const markerId = this.getAttribute('data-id');
+        
+        const reason = prompt('Будь ласка, вкажіть причину звернення:');
+        if(!reason) return;
+        
+        fetch(`/content/api/markers/${markerId}/report/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+            reason: reason
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if(data.success) {
+            alert('Дякуємо за звернення. Ми переглянемо цей маркер.');
+          } else {
+            alert('Помилка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Сталася помилка під час подання звернення');
+        });
+      });
+    }
+    
+    // Handle delete button
+    if(document.querySelector('.delete-btn')) {
+      document.querySelector('.delete-btn').addEventListener('click', function() {
+        if(confirm('Ви впевнені, що хочете видалити цей маркер? Ця дія незворотна.')) {
+          const markerId = this.getAttribute('data-id');
+          
+          fetch(`/content/marker/${markerId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': csrfToken
+            }
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if(data.success) {
+              window.location.href = '{% url "map" %}';
+            } else {
+              alert('Помилка: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Сталася помилка під час видалення маркера');
+          });
+        }
+      });
+    }
+    
+    // Handle comment upvote
+    document.querySelectorAll('.comment-upvote-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const commentId = this.getAttribute('data-id');
+        
+        fetch(`/content/api/comments/${commentId}/upvote/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if(data.success) {
+            // Update vote count
+            this.innerHTML = `
+              <svg viewBox="0 0 24 24">
+                <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+              </svg>
+              ${data.votes}
+            `;
+          } else {
+            if(data.message === 'login_required') {
+              alert('Будь ласка, увійдіть, щоб голосувати');
+            } else {
+              alert('Помилка: ' + data.message);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Сталася помилка під час голосування');
+        });
+      });
+    });
+    
+    // Improve comment submission
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+      commentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const textarea = this.querySelector('textarea[name="text"]');
+        if (!textarea.value.trim()) {
+          alert('Будь ласка, введіть текст коментаря');
+          return;
+        }
+        
+        const submitBtn = this.querySelector('.submit-comment-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Відправка...';
+        submitBtn.disabled = true;
+        
+        // Submit the form using fetch
+        fetch(this.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+            text: textarea.value
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Create and add the new comment to the list
+            const commentsList = document.querySelector('.comments-list');
+            const noComments = document.querySelector('.no-comments');
+            
+            if (noComments) {
+              noComments.remove();
+            }
+            
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `
+              <div class="comment-header">
+                <span class="comment-author">${data.username}</span>
+                <span class="comment-date">${data.date}</span>
+                ${data.is_verified ? '<span class="verified-badge">Експерт</span>' : ''}
+              </div>
+              <p class="comment-text">${data.text}</p>
+              <div class="comment-actions">
+                <button class="comment-upvote-btn" data-id="${data.id}">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                  </svg>
+                  0
+                </button>
+              </div>
+            `;
+            
+            commentsList.prepend(newComment);
+            
+            // Add event listener to the new upvote button
+            newComment.querySelector('.comment-upvote-btn').addEventListener('click', function() {
+              const commentId = this.getAttribute('data-id');
+              
+              fetch(`/content/api/comments/${commentId}/upvote/`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': csrfToken
+                }
+              })
+              .then(response => response.json())
+              .then(data => {
+                if(data.success) {
+                  this.innerHTML = `
+                    <svg viewBox="0 0 24 24">
+                      <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/>
+                    </svg>
+                    ${data.votes}
+                  `;
+                }
+              });
+            });
+            
+            // Clear the textarea
+            textarea.value = '';
+            
+            // Update comment count
+            const commentsCountEl = document.querySelector('.comments-header h3');
+            if (commentsCountEl) {
+              const currentCount = parseInt(commentsCountEl.textContent.match(/\d+/)[0] || '0');
+              commentsCountEl.textContent = `Коментарі (${currentCount + 1})`;
+            }
+          } else {
+            alert('Помилка: ' + data.message);
+          }
+          
+          // Reset button
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Сталася помилка під час надсилання коментаря');
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        });
+      });
+    }
+
+    // Image modal functionality
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-image');
+    const captionText = document.getElementById('modal-caption');
+    const closeBtn = document.querySelector('.close');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    // Get all images in the media gallery
+    const mediaItems = document.querySelectorAll('.media-gallery .media-item img');
+    let currentIndex = 0;
+    const mediaArray = Array.from(mediaItems);
+    
+    // Open modal when clicking on an image
+    mediaItems.forEach((img, index) => {
+      img.addEventListener('click', function() {
+        modal.style.display = "block";
+        modalImg.src = this.src;
+        captionText.innerHTML = this.parentElement.querySelector('span').textContent;
+        currentIndex = index;
+      });
+    });
+    
+    // Close modal
+    closeBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+    
+    // Navigate to previous image
+    prevBtn.onclick = function() {
+      currentIndex = (currentIndex - 1 + mediaArray.length) % mediaArray.length;
+      modalImg.src = mediaArray[currentIndex].src;
+      captionText.innerHTML = mediaArray[currentIndex].parentElement.querySelector('span').textContent;
+    }
+    
+    // Navigate to next image
+    nextBtn.onclick = function() {
+      currentIndex = (currentIndex + 1) % mediaArray.length;
+      modalImg.src = mediaArray[currentIndex].src;
+      captionText.innerHTML = mediaArray[currentIndex].parentElement.querySelector('span').textContent;
+    }
+    
+    // Close modal when clicking outside the image
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+    
+    // Support keyboard navigation
+    document.addEventListener('keydown', function(event) {
+      if (modal.style.display === "block") {
+        if (event.key === "ArrowLeft") {
+          prevBtn.click();
+        } else if (event.key === "ArrowRight") {
+          nextBtn.click();
+        } else if (event.key === "Escape") {
+          modal.style.display = "none";
+        }
+      }
+    });
+
+    // Toggle dark mode if the body already has the dark-mode class
+    if (document.body.classList.contains('dark-mode')) {
+      // Apply dark mode to mini map
+      document.querySelector('.leaflet-layer').style.filter = 'invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)';
+    }
+
+    // Detection processing functionality
+    const startAnalysisBtn = document.getElementById('start-analysis-btn');
+    const reprocessAnalysisBtn = document.getElementById('reprocess-analysis-btn');
+    const detectionModal = document.getElementById('detection-modal');
+    const processingModal = document.getElementById('processing-modal');
+    const detectionCloseBtn = document.querySelector('.detection-close');
+    const detectionForm = document.getElementById('detection-options-form');
+    const cancelProcessingBtn = document.getElementById('cancel-processing-btn');
+    
+    // Show detection options modal when user clicks the start analysis button
+    if (startAnalysisBtn) {
+      startAnalysisBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'block';
+      });
+    }
+    
+    // Show detection options modal when user clicks the reprocess button
+    if (reprocessAnalysisBtn) {
+      reprocessAnalysisBtn.addEventListener('click', function() {
+        // Set the initial state of checkboxes based on marker's current settings
+        document.getElementById('object_detection').checked = {{ marker.object_detection|yesno:"true,false" }};
+        document.getElementById('military_detection').checked = {{ marker.camouflage_detection|yesno:"true,false" }};
+        
+        detectionModal.style.display = 'block';
+      });
+    }
+    
+    // Close detection modal when user clicks the close button
+    if (detectionCloseBtn) {
+      detectionCloseBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'none';
+      });
+    }
+    
+    // Close detection modal when user clicks cancel
+    if (cancelProcessingBtn) {
+      cancelProcessingBtn.addEventListener('click', function() {
+        detectionModal.style.display = 'none';
+      });
+    }
+    
+    // Close modal when clicking outside the content
+    window.addEventListener('click', function(event) {
+      if (event.target === detectionModal) {
+        detectionModal.style.display = 'none';
+      }
+      if (event.target === processingModal) {
+        // Don't allow closing processing modal by clicking outside
+      }
+    });
+    
+    // Handle form submission and start processing
+    if (detectionForm) {
+      detectionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get selected detection types
+        const object_detection = document.getElementById('object_detection').checked;
+        const military_detection = document.getElementById('military_detection').checked;
+        
+        // Make sure at least one type is selected
+        if (!object_detection && !military_detection) {
+          alert('Будь ласка, оберіть хоча б один тип аналізу');
+          return;
+        }
+        
+        // Close detection options modal and show processing modal
+        detectionModal.style.display = 'none';
+        processingModal.style.display = 'block';
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('object_detection', object_detection ? 'on' : 'off');
+        formData.append('military_detection', military_detection ? 'on' : 'off');
+        
+        // Update marker on backend with selected detection types and start processing
+        fetch(`/detection/api/markers/{{ marker.id }}/process/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Start polling for status
+            document.getElementById('processing-status').textContent = 'Обробка розпочата...';
+            pollProcessingStatus();
+          } else {
+            processingModal.style.display = 'none';
+            alert('Помилка: ' + data.message);
+          }
+        })
+        .catch(error => {
+          processingModal.style.display = 'none';
+          console.error('Error:', error);
+          alert('Сталася помилка під час запуску обробки');
+        });
+      });
+    }
+    
+    // Poll for processing status
+    function pollProcessingStatus() {
+      const statusUrl = `/detection/markers/{{ marker.id }}/status/`;
+      const progressBar = document.querySelector('.progress-bar');
+      const statusText = document.getElementById('processing-status');
+      
+      // Check status every 2 seconds
+      const pollInterval = setInterval(() => {
+        fetch(statusUrl)
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'completed') {
+              // Processing completed
+              clearInterval(pollInterval);
+              progressBar.style.width = '100%';
+              statusText.textContent = 'Обробка завершена!';
+              
+              // Redirect to results page after a short delay
+              setTimeout(() => {
+                window.location.href = `/detection/markers/{{ marker.id }}/results/`;
+              }, 1000);
+            } 
+            else if (data.status === 'error') {
+              // Error occurred
+              clearInterval(pollInterval);
+              statusText.textContent = 'Помилка: ' + (data.result ? data.result.message : 'Невідома помилка');
+              
+              // Allow closing the modal after error
+              setTimeout(() => {
+                processingModal.style.display = 'none';
+                alert('Під час обробки сталася помилка. Спробуйте ще раз пізніше.');
+              }, 3000);
+            }
+            else if (data.status === 'processing') {
+              // Update progress
+              const progress = data.progress || 0;
+              progressBar.style.width = `${progress}%`;
+              statusText.textContent = `Обробка: ${progress}% завершено`;
+            }
+            else if (data.status === 'idle') {
+              // Processing not started yet
+              statusText.textContent = 'Очікування початку обробки...';
+            }
+          })
+          .catch(error => {
+            console.error('Error polling status:', error);
+          });
+      }, 2000);
+    }
+  </script>
+
+  <!-- Add this CSS after your existing stylesheet links -->
+  <style>
+    /* Media gallery improvements */
+    .media-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    
+    .media-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      aspect-ratio: 1/1;
+    }
+    
+    .media-item:hover {
+      transform: scale(1.03);
+    }
+    
+    .media-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .media-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f0f0;
+      height: 100%;
+      width: 100%;
+    }
+    
+    .media-placeholder svg {
+      width: 40%;
+      height: 40%;
+      opacity: 0.5;
+    }
+    
+    .media-item span {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      padding: 5px;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    
+    /* Modal/Fullscreen styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.9);
+    }
+    
+    .modal-content {
+      position: relative;
+      margin: auto;
+      padding: 0;
+      width: 90%;
+      max-width: 1200px;
+      height: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-img {
+      max-height: 80vh;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      transition: 0.3s;
+      z-index: 1001;
+    }
+    
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    #modal-caption {
+      margin: 10px auto;
+      display: block;
+      width: 80%;
+      max-width: 700px;
+      text-align: center;
+      color: #ccc;
+      padding: 10px 0;
+    }
+    
+    .modal-navigation {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .nav-btn {
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      font-size: 24px;
+      padding: 15px;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .nav-btn:hover {
+      background: rgba(0,0,0,0.8);
+    }
+
+    /* Detection Modal Styles */
+    .detection-options-modal .detection-modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .detection-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .detection-close:hover {
+      color: #333;
+    }
+    
+    .detection-option {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    
+    .detection-option input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    
+    .detection-option label {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .detection-option-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .detection-option-desc {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .detection-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    
+    .detection-actions button {
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .detection-actions .btn-primary {
+      background-color: #4285F4;
+      color: white;
+    }
+    
+    .detection-actions .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    /* Processing Status Modal */
+    .processing-status-modal .processing-modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .progress-container {
+      width: 100%;
+      height: 20px;
+      background-color: #f1f1f1;
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      width: 5%;
+      background-color: #4285F4;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+    
+    #processing-status {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    /* Dark mode support */
+    body.dark-mode .detection-modal-content,
+    body.dark-mode .processing-modal-content {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .detection-close {
+      color: #ccc;
+    }
+    
+    body.dark-mode .detection-close:hover {
+      color: #fff;
+    }
+    
+    body.dark-mode .detection-option {
+      background-color: #444;
+    }
+    
+    body.dark-mode .detection-option-desc {
+      color: #ccc;
+    }
+    
+    body.dark-mode .detection-actions .btn-secondary {
+      background-color: #555;
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .progress-container {
+      background-color: #444;
+    }
+    
+    body.dark-mode #processing-status {
+      color: #ccc;
+    }
+
+    /* Button and AI Analysis Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn i {
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background-color: #4285F4 !important;
+      color: white !important;
+      box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+    }
+    
+    .btn-primary:hover {
+      background-color: #3367d6 !important;
+      box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5 !important;
+      color: #555 !important;
+      border: 1px solid #ddd !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e8e8e8 !important;
+      color: #333 !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* AI Analysis section */
+    .ai-analysis-result {
+      background-color: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+    }
+    
+    .ai-analysis-empty {
+      background-color: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .ai-analysis-empty p {
+      margin-bottom: 15px;
+    }
+    
+    .ai-analysis-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    /* Dark mode styles for buttons */
+    body.dark-mode .btn-primary {
+      background-color: #4285F4 !important;
+      color: white !important;
+      box-shadow: 0 2px 5px rgba(66, 133, 244, 0.2);
+    }
+    
+    body.dark-mode .btn-primary:hover {
+      background-color: #5c9aff !important;
+      box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+    }
+    
+    body.dark-mode .btn-secondary {
+      background-color: #3a3a3a !important;
+      color: #ddd !important;
+      border-color: #555 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    body.dark-mode .btn-secondary:hover {
+      background-color: #444 !important;
+      color: #fff !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .ai-analysis-result,
+    body.dark-mode .ai-analysis-empty {
+      background-color: #333;
+      color: #eee;
+    }
+    
+    body.dark-mode .ai-analysis-item h4 {
+      color: #f0f0f0;
+    }
+    
+    body.dark-mode .ai-analysis-item p {
+      color: #ccc;
+    }
+  </style>
+</body>
+</html>

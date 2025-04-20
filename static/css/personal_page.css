@@ -1,0 +1,354 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Adjust sidebar width as needed */
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        "header main"
+        "sidebar main"
+        "footer footer";
+    gap: 20px;
+    min-height: 100vh;
+}
+
+/* Header */
+h1 {
+    grid-area: header;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+h1 + p { /* Soldier and Email below the name */
+    grid-area: header;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 0;
+}
+
+/* Sidebar (Contact Info and Add Request) */
+aside {
+    grid-area: sidebar;
+    background-color: #e9e9e9;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.settings {
+    cursor: pointer;
+}
+
+.contact-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contact-info {
+    margin-bottom: 15px;
+}
+
+.contact-info h2 {
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.contact-info p {
+    margin-bottom: 5px;
+}
+
+.contact-info a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+#add-request-form-container {
+    background-color: #dcdcdc;
+    padding: 10px;
+    border-radius: 3px;
+}
+
+#add-request-form-container h2 {
+    font-size: 1em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+#add-request-form-container form p {
+    margin-bottom: 8px;
+}
+
+#add-request-form-container label {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+#add-request-form-container input[type="text"],
+#add-request-form-container textarea {
+    width: calc(100% - 12px);
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.9em;
+}
+
+#add-request-form-container button[type="submit"] {
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#add-request-form-container button[type="submit"]:hover {
+    background-color: #4cae4c;
+}
+
+/* Main Content (Archive/Request Data) */
+main {
+    grid-area: main;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Request Data List */
+main ul {
+    list-style: none;
+    padding: 0;
+}
+
+main li {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    background-color: #f9f9f9;
+}
+
+main li strong {
+    font-weight: bold;
+    color: #222;
+}
+
+main li p {
+    margin-top: 5px;
+    margin-bottom: 0;
+    font-size: 0.95em;
+    color: #555;
+}
+
+/* Add Request Form (within main content) */
+main h2 {
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+main form p {
+    margin-bottom: 10px;
+}
+
+main label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #444;
+}
+
+main input[type="text"],
+main textarea {
+    width: calc(100% - 12px);
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+main button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+main button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Edit Contacts Button and Form */
+#editContacts {
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+#editContacts:hover {
+    background-color: #eea236;
+}
+
+#contactForm {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    margin-bottom: 10px;
+}
+
+#contactForm label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+#contactForm input[type="text"] {
+    width: calc(100% - 12px);
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+#contactForm button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#contactForm button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Logout Button */
+main form[action*="logout"] {
+    margin-top: 20px;
+}
+
+main form[action*="logout"] button[type="submit"] {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+main form[action*="logout"] button[type="submit"]:hover {
+    background-color: #c9302c;
+}
+
+/* Bottom Menu */
+.bottom-menu {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    grid-area: footer;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px 5px 0 0;
+}
+
+.bottom-menu a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 1.5em;
+}
+
+.bottom-menu a:hover {
+    color: #ddd;
+}
+
+/* Archive Table (if you want to style it like the image) */
+.archive-section {
+    margin-top: 20px;
+}
+
+.archive-section h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.archive-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.archive-section th, .archive-section td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.archive-section th {
+    background-color: #89cff7;
+    font-weight: bold;
+}
+
+.archive-section tr {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.archive-section tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Adjustments to match the image layout more closely */
+@media (min-width: 768px) {
+    body {
+        grid-template-columns: 300px 1fr;
+    }
+
+    /* Move "Form to add new request" to the sidebar */
+    #add-request-form-container {
+        margin-bottom: 20px;
+    }
+
+    /* Adjust main content to flow better */
+    main > h2:first-of-type { /* Style "My markers" heading */
+        margin-top: 0; /* Align with the top of the main content */
+    }
+}

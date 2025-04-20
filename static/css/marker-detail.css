@@ -1,0 +1,748 @@
+/* Marker Detail View Styles */
+
+/* Mini map for location context */
+#mini-map {
+    width: 100%;
+    height: 30vh;
+    min-height: 200px;
+    max-height: 300px;
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Back button */
+.back-button {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.back-button svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Detail panel */
+.detail-panel {
+    position: absolute;
+    top: 30vh;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-header h2 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 600;
+}
+
+.detail-header-badges {
+    display: flex;
+    gap: 10px;
+}
+
+.confidence-badge {
+    background-color: #4285F4;
+    color: white;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.detail-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+}
+
+/* Location and date container */
+.location-date-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+}
+
+.detail-location, .detail-date {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #666;
+}
+
+.detail-location svg, .detail-date svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    fill: #666;
+}
+
+/* Detail sections */
+.detail-section {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-section h3 {
+    font-size: 16px;
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+
+.detail-section p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #444;
+    margin: 0 0 10px;
+}
+
+/* Category badge */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    padding: 6px 12px;
+}
+
+.category-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.category-icon.infrastructure {
+    background-color: #E57373;
+}
+
+.category-icon.military {
+    background-color: #7B1FA2;
+}
+
+.category-icon.hazard {
+    background-color: #FFA000;
+}
+
+.category-icon.residential {
+    background-color: #388E3C;
+}
+
+/* AI Analysis section */
+.ai-analysis-result {
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.ai-analysis-empty {
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.ai-analysis-empty p {
+    margin-bottom: 15px;
+}
+
+.ai-analysis-item {
+    margin-bottom: 12px;
+}
+
+.ai-analysis-item:last-child {
+    margin-bottom: 0;
+}
+
+.ai-analysis-item h4 {
+    font-size: 14px;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ai-analysis-item p {
+    font-size: 12px;
+    color: #666;
+    margin: 0 0 3px;
+}
+
+/* Button Styles (Global) */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn i {
+    font-size: 14px;
+}
+
+.btn-primary {
+    background-color: #4285F4;
+    color: white !important;
+    box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+}
+
+.btn-primary:hover {
+    background-color: #3367d6;
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #555 !important;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover {
+    background-color: #e8e8e8;
+    color: #333 !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* AI Analysis Actions and Buttons */
+.ai-analysis-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.ai-analysis-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.ai-analysis-actions .btn i {
+    font-size: 14px;
+}
+
+.ai-analysis-actions .btn-primary {
+    background-color: #4285F4;
+    color: white;
+    box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+}
+
+.ai-analysis-actions .btn-primary:hover {
+    background-color: #3367d6;
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+}
+
+.ai-analysis-actions .btn-secondary {
+    background-color: #f5f5f5;
+    color: #555;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ai-analysis-actions .btn-secondary:hover {
+    background-color: #e8e8e8;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Media gallery */
+.media-gallery {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 5px 0 15px;
+}
+
+.media-item {
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.media-placeholder {
+    width: 120px;
+    height: 80px;
+    background-color: #eee;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.media-placeholder svg {
+    width: 32px;
+    height: 32px;
+    fill: #999;
+}
+
+.media-item span {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
+.add-media-btn {
+    min-width: 120px;
+    height: 80px;
+    background-color: #f5f5f5;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-media-btn:hover {
+    background-color: #eaeaea;
+}
+
+.add-media-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: #777;
+    margin-bottom: 5px;
+}
+
+/* Comments section */
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.sort-comments-btn {
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.sort-comments-btn svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    fill: #666;
+}
+
+.comments-list {
+    margin-bottom: 20px;
+}
+
+.comment {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.comment:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.comment-author {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.comment-date {
+    font-size: 11px;
+    color: #888;
+    margin-left: 10px;
+}
+
+.verified-badge {
+    background-color: #4285F4;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 10px;
+    margin-left: 10px;
+}
+
+.comment-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+}
+
+.comment-reply-btn, .comment-upvote-btn {
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.comment-upvote-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: #666;
+    margin-right: 3px;
+}
+
+/* Comment form */
+.comment-form {
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    height: 80px;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    margin-bottom: 10px;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+}
+
+.comment-form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.attach-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.attach-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #666;
+}
+
+.submit-comment-btn {
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-comment-btn:hover {
+    background-color: #3367d6;
+}
+
+/* Action buttons */
+.action-buttons {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.action-btn svg {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 5px;
+    fill: #666;
+}
+
+.action-btn.verify-btn svg {
+    fill: #388E3C;
+}
+
+.action-btn.report-btn svg {
+    fill: #D32F2F;
+}
+
+/* Dark mode styles */
+body.dark-mode .back-button,
+body.dark-mode .detail-panel {
+    background-color: rgba(70, 70, 70, 0.95);
+}
+
+body.dark-mode .detail-header {
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .detail-header h2 {
+    color: #f8f8f8;
+}
+
+body.dark-mode .detail-location, 
+body.dark-mode .detail-date,
+body.dark-mode .detail-location svg, 
+body.dark-mode .detail-date svg {
+    color: #ccc;
+    fill: #ccc;
+}
+
+body.dark-mode .detail-section {
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .detail-section h3 {
+    color: #f0f0f0;
+}
+
+body.dark-mode .detail-section p {
+    color: #ddd;
+}
+
+body.dark-mode .category-badge {
+    background-color: #444;
+    color: #f0f0f0;
+}
+
+body.dark-mode .ai-analysis-result {
+    background-color: #333;
+}
+
+body.dark-mode .ai-analysis-item h4 {
+    color: #f0f0f0;
+}
+
+body.dark-mode .ai-analysis-item p {
+    color: #ccc;
+}
+
+body.dark-mode .btn-primary {
+    background-color: #4285F4;
+    color: white !important;
+    box-shadow: 0 2px 5px rgba(66, 133, 244, 0.2);
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #5c9aff;
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+body.dark-mode .btn-secondary {
+    background-color: #3a3a3a;
+    color: #ddd !important;
+    border-color: #555;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: #444;
+    color: #fff !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .ai-analysis-empty {
+    background-color: #333;
+}
+
+body.dark-mode .media-placeholder {
+    background-color: #444;
+}
+
+body.dark-mode .media-placeholder svg {
+    fill: #aaa;
+}
+
+body.dark-mode .media-item span {
+    color: #ccc;
+}
+
+body.dark-mode .add-media-btn {
+    background-color: #333;
+    border-color: #555;
+}
+
+body.dark-mode .add-media-btn:hover {
+    background-color: #444;
+}
+
+body.dark-mode .add-media-btn svg {
+    fill: #aaa;
+}
+
+body.dark-mode .sort-comments-btn {
+    color: #ccc;
+}
+
+body.dark-mode .sort-comments-btn svg {
+    fill: #ccc;
+}
+
+body.dark-mode .comment {
+    border-bottom-color: #555;
+}
+
+body.dark-mode .comment-author {
+    color: #f0f0f0;
+}
+
+body.dark-mode .comment-date {
+    color: #aaa;
+}
+
+body.dark-mode .comment-text {
+    color: #ddd;
+}
+
+body.dark-mode .comment-reply-btn,
+body.dark-mode .comment-upvote-btn {
+    color: #ccc;
+}
+
+body.dark-mode .comment-upvote-btn svg {
+    fill: #ccc;
+}
+
+body.dark-mode .comment-form {
+    background-color: #333;
+}
+
+body.dark-mode .comment-form textarea {
+    color: #f0f0f0;
+}
+
+body.dark-mode .comment-form textarea::placeholder {
+    color: #999;
+}
+
+body.dark-mode .attach-btn svg {
+    fill: #ccc;
+}
+
+body.dark-mode .action-buttons {
+    background-color: #333;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .action-btn {
+    color: #ccc;
+}
+
+body.dark-mode .action-btn svg {
+    fill: #ccc;
+}
+
+body.dark-mode .action-btn.verify-btn svg {
+    fill: #4CAF50;
+}
+
+body.dark-mode .action-btn.report-btn svg {
+    fill: #F44336;
+}
+
+/* App header in dark mode (from what I can see in the HTML) */
+body.dark-mode .app-header {
+    background-color: rgba(50, 50, 50, 0.8);
+}
+
+body.dark-mode .app-header h1 {
+    color: #f0f0f0;
+}
+
+body.dark-mode .status {
+    color: #4CAF50;
+}
+
+/* Status badges in dark mode */
+body.dark-mode .status-verified {
+    background-color: #388E3C;
+}

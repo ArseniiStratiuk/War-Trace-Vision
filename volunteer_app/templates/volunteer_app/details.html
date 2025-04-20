@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Деталі запиту - Волонтерський додаток</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #C8E6C9;
+            --text-color: #212121;
+            --text-secondary: #757575;
+            --divider-color: #BDBDBD;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --success-color: #2e7d32;
+            --warning-color: #ff8f00;
+            --danger-color: #c62828;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-menu {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .request-details {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .request-details h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 22px;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
+        }
+        
+        .request-details p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .urgency-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        
+        .urgency-висока {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+        
+        .urgency-середня {
+            background-color: #fff8e1;
+            color: var(--warning-color);
+        }
+        
+        .urgency-низька {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--divider-color);
+            border-radius: var(--border-radius);
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            align-self: flex-end;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .bottom-menu {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .bottom-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .bottom-menu a:hover {
+            color: var(--primary-light);
+        }
+        
+        @media (max-width: 600px) {
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-menu">Деталі запиту</div>
+
+    <main>
+        <div class="request-details">
+            <h3>{{ request.name }}</h3>
+            <p>{{ request.description }}</p>
+            
+            <span class="urgency-tag urgency-{{ request.get_urgency_display|lower }}">
+                Терміновість: {{ request.get_urgency_display }}
+            </span>
+
+            <form method="post" action="{% url 'send_message' request.id %}">
+                {% csrf_token %}
+                <textarea name="message" placeholder="Напишіть повідомлення..." required></textarea>
+                <button type="submit">Надіслати</button>
+            </form>
+        </div>
+    </main>
+
+    <div class="bottom-menu">
+        <a href="{% url 'search' %}">Назад</a>
+    </div>
+</body>
+</html>
