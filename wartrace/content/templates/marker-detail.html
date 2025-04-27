@@ -63,9 +63,23 @@
         </div>
       </div>
 
+      <!-- New Author Section -->
+      <div class="detail-section">
+        <h3>Автор</h3>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #666;">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+          <span id="marker-author">{{ marker.user.username }}</span>
+          {% if marker.user.is_staff %}
+          <span class="verified-badge">Експерт</span>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="detail-section">
         <h3>Опис</h3>
-        <p id="marker-description">{{ marker.description }}</p>
+        <p style="white-space: pre-wrap" id="marker-description">{{ marker.description }}</p>
       </div>
 
       <div class="detail-section">
@@ -215,11 +229,11 @@
             <div class="comment-header">
               <span class="comment-author">{{ comment.user.username }}</span>
               <span class="comment-date">{{ comment.created_at|date:"Y-m-d" }}</span>
-              {% if comment.user.profile.is_verified %}
+              {% if comment.user.is_staff %}
               <span class="verified-badge">Експерт</span>
               {% endif %}
             </div>
-            <p class="comment-text">{{ comment.text }}</p>
+            <p style="white-space: pre-wrap" class="comment-text">{{ comment.text }}</p>
             <div class="comment-actions">
               <button class="comment-upvote-btn" data-id="{{ comment.id }}">
                 <svg viewBox="0 0 24 24">
@@ -693,7 +707,7 @@
               <div class="comment-header">
                 <span class="comment-author">${data.username}</span>
                 <span class="comment-date">${data.date}</span>
-                ${data.is_verified ? '<span class="verified-badge">Експерт</span>' : ''}
+                ${data.is_staff ? '<span class="verified-badge">Експерт</span>' : ''}
               </div>
               <p class="comment-text">${data.text}</p>
               <div class="comment-actions">

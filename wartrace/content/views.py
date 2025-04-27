@@ -6,7 +6,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, Http404
 from django.core.files.storage import default_storage
 from django.urls import reverse
 from django.forms import modelformset_factory
@@ -41,8 +41,8 @@ def edit_marker_view(request, marker_id):
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[edit_marker_view] Retrieved marker: {marker.title} (ID: {marker.id})")
 
-    # Check if user has permission to edit this marker
-    if marker.user != request.user and not request.user.is_staff:
+    # Check if user is the owner of this marker
+    if marker.user != request.user:
         print(f"[edit_marker_view] Permission denied for user {request.user.username} to edit marker {marker_id}")
         logger.warning(f"Permission denied: User {request.user.username} attempted to edit marker {marker_id} owned by {marker.user.username}")
         return render(request, '403.html', status=403)
@@ -70,8 +70,8 @@ def edit_marker_submit(request, marker_id):
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[edit_marker_submit] Retrieved marker: {marker.title} (ID: {marker.id})")
 
-    # Check if user has permission to edit this marker
-    if marker.user != request.user and not request.user.is_staff:
+    # Check if user is the owner of this marker
+    if marker.user != request.user:
         print(f"[edit_marker_submit] Permission denied for user {request.user.username} to edit marker {marker_id}")
         logger.warning(f"Permission denied: User {request.user.username} attempted to submit edits for marker {marker_id}")
         return JsonResponse({
@@ -163,8 +163,8 @@ def delete_media(request, marker_id, file_id):
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[delete_media] Retrieved marker: {marker.title} (ID: {marker.id})")
     
-    # Check if user has permission to delete media
-    if marker.user != request.user and not request.user.is_staff:
+    # Check if user is the owner of the marker
+    if marker.user != request.user:
         print(f"[delete_media] Permission denied for user {request.user.username}")
         logger.warning(f"Permission denied: User {request.user.username} attempted to delete file {file_id}")
         return JsonResponse({
@@ -213,7 +213,28 @@ def add_comment(request, marker_id):
     
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[add_comment] Retrieved marker: {marker.title} (ID: {marker.id})")
-    
+
+    # Check view permission before allowing comment
+    can_view = False
+    if marker.visibility == 'public':
+        can_view = True
+    elif request.user.is_authenticated:
+        if marker.visibility == 'private' and marker.user == request.user: # Only owner for private
+            can_view = True
+        elif marker.visibility == 'verified_only' and (request.user.is_staff or marker.user == request.user): # Staff or owner for verified_only
+             can_view = True
+        # Add check for verified users if you have a specific field/group for that
+        # elif marker.visibility == 'verified_only' and request.user.profile.is_verified: # Example check
+        #     can_view = True
+
+    if not can_view:
+        print(f"[add_comment] Permission denied: User {request.user.username} cannot view marker {marker_id}")
+        logger.warning(f"Permission denied: User {request.user.username} attempted to comment on inaccessible marker {marker_id}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Permission denied to view or comment on this marker.'
+        }, status=403)
+
     try:
         # Extract comment text based on content type
         if request.content_type == 'application/json':
@@ -235,11 +256,9 @@ def add_comment(request, marker_id):
         comment.save()
         print(f"[add_comment] Comment saved with ID: {comment.id}")
         
-        # Check if user has a profile with is_verified attribute
-        is_verified = False
-        if hasattr(request.user, 'profile'):
-            is_verified = getattr(request.user.profile, 'is_verified', False)
-            print(f"[add_comment] User verification status: {is_verified}")
+        # Use the built-in is_staff attribute directly
+        is_staff = request.user.is_staff
+        print(f"[add_comment] User staff status: {is_staff}")
         
         logger.info(f"User {request.user.username} successfully added comment {comment.id} to marker {marker_id}")
         
@@ -250,7 +269,7 @@ def add_comment(request, marker_id):
             'text': comment.text,
             'username': request.user.username,
             'date': comment.created_at.strftime('%Y-%m-%d'),
-            'is_verified': is_verified
+            'is_staff': is_staff  # Changed property name to match HTML template
         })
     except Exception as e:
         print(f"[add_comment] Error adding comment: {str(e)}")
@@ -271,8 +290,8 @@ def add_media(request, marker_id):
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[add_media] Retrieved marker: {marker.title} (ID: {marker.id})")
     
-    # Check if user has permission to add media
-    if marker.user != request.user and not request.user.is_staff:
+    # Check if user is the owner of the marker
+    if marker.user != request.user:
         print(f"[add_media] Permission denied for user {request.user.username}")
         logger.warning(f"Permission denied: User {request.user.username} attempted to add media to marker {marker_id}")
         return JsonResponse({
@@ -391,7 +410,26 @@ def upvote_marker(request, marker_id):
     
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[upvote_marker] Retrieved marker: {marker.title} (ID: {marker.id})")
-    
+
+    # Check view permission before allowing upvote
+    can_view = False
+    if marker.visibility == 'public':
+        can_view = True
+    elif request.user.is_authenticated:
+        if marker.visibility == 'private' and marker.user == request.user: # Only owner for private
+            can_view = True
+        elif marker.visibility == 'verified_only' and (request.user.is_staff or marker.user == request.user): # Only staff or owner
+             can_view = True
+        # Add check for verified users if needed
+
+    if not can_view:
+        print(f"[upvote_marker] Permission denied: User {request.user.username} cannot view marker {marker_id}")
+        logger.warning(f"Permission denied: User {request.user.username} attempted to upvote inaccessible marker {marker_id}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Permission denied to view or interact with this marker.'
+        }, status=403)
+
     # Toggle upvote
     if request.user in marker.upvotes.all():
         print(f"[upvote_marker] Removing upvote from user {request.user.username}")
@@ -420,8 +458,28 @@ def upvote_comment(request, comment_id):
     logger.info(f"User {request.user.username} is toggling upvote for comment {comment_id}")
     
     comment = get_object_or_404(Comment, id=comment_id)
-    print(f"[upvote_comment] Retrieved comment on marker: {comment.marker.id}")
-    
+    marker = comment.marker # Get the associated marker
+    print(f"[upvote_comment] Retrieved comment on marker: {marker.id}")
+
+    # Check view permission for the marker before allowing comment upvote
+    can_view = False
+    if marker.visibility == 'public':
+        can_view = True
+    elif request.user.is_authenticated:
+        if marker.visibility == 'private' and marker.user == request.user: # Only owner for private
+            can_view = True
+        elif marker.visibility == 'verified_only' and (request.user.is_staff or marker.user == request.user): # Only staff or owner
+             can_view = True
+        # Add check for verified users if needed
+
+    if not can_view:
+        print(f"[upvote_comment] Permission denied: User {request.user.username} cannot view marker {marker.id}")
+        logger.warning(f"Permission denied: User {request.user.username} attempted to upvote comment on inaccessible marker {marker.id}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Permission denied to view or interact with this marker.'
+        }, status=403)
+
     # Toggle upvote
     if request.user in comment.upvotes.all():
         print(f"[upvote_comment] Removing upvote from user {request.user.username}")
@@ -451,7 +509,26 @@ def report_marker(request, marker_id):
     
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[report_marker] Retrieved marker: {marker.title} (ID: {marker.id})")
-    
+
+    # Check view permission before allowing report
+    can_view = False
+    if marker.visibility == 'public':
+        can_view = True
+    elif request.user.is_authenticated:
+        if marker.visibility == 'private' and marker.user == request.user: # Only owner for private
+            can_view = True
+        elif marker.visibility == 'verified_only' and (request.user.is_staff or marker.user == request.user): # Only staff or owner
+             can_view = True
+        # Add check for verified users if needed
+
+    if not can_view:
+        print(f"[report_marker] Permission denied: User {request.user.username} cannot view marker {marker_id}")
+        logger.warning(f"Permission denied: User {request.user.username} attempted to report inaccessible marker {marker_id}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Permission denied to view or report this marker.'
+        }, status=403)
+
     try:
         data = json.loads(request.body) if request.body else {}
         reason = data.get('reason', '')
@@ -503,42 +580,51 @@ def marker_api(request):
     print("[marker_api] Entering function")
     user = request.user
     print(f"[marker_api] User: {'Authenticated: ' + user.username if user.is_authenticated else 'Anonymous'}")
-    
-    # Filter markers based on visibility and user
-    markers = Marker.objects.all()
-    print(f"[marker_api] Total markers in database: {markers.count()}")
-    
+
+    # Base queryset
+    markers_qs = Marker.objects.select_related('user').prefetch_related('files')
+    print(f"[marker_api] Total markers in database: {markers_qs.count()}")
+
+    # Filter based on user permissions
     if not user.is_authenticated:
-        # For anonymous users, only show public markers
-        markers = markers.filter(visibility='public')
-        print(f"[marker_api] Filtered to {markers.count()} public markers for anonymous user")
+        # Anonymous users: only public markers
+        markers_qs = markers_qs.filter(visibility='public')
+        print(f"[marker_api] Filtered to public markers for anonymous user")
     else:
-        # For logged in users, show public markers, their own markers, and verified_only if they are staff
         if user.is_staff:
-            # Staff can see all markers
-            print(f"[marker_api] Staff user - showing all {markers.count()} markers")
-            pass
-        else:
-            # Regular users can see public markers and their own private markers
-            markers = markers.filter(
-                models.Q(visibility='public') | 
-                models.Q(visibility='verified_only', verification='verified') |
-                models.Q(user=user)
+            # Staff can see public and verified_only markers, plus their own private ones
+            markers_qs = markers_qs.filter(
+                models.Q(visibility='public') |
+                models.Q(visibility='verified_only') |
+                models.Q(visibility='private', user=user) # Staff see only their own private markers
             )
-            print(f"[marker_api] Filtered to {markers.count()} markers for user {user.username}")
-    
+            print(f"[marker_api] Filtered markers for staff user {user.username}")
+        else:
+            # Authenticated non-staff users:
+            # - Public markers
+            # - Their own private markers
+            # - Their own verified_only markers (if they created them)
+            markers_qs = markers_qs.filter(
+                models.Q(visibility='public') |
+                models.Q(visibility='private', user=user) |
+                models.Q(visibility='verified_only', user=user) # Only show user's own verified_only markers
+            )
+            print(f"[marker_api] Filtered markers for user {user.username}")
+
+    final_count = markers_qs.count()
+    print(f"[marker_api] Final marker count after filtering: {final_count}")
+
     # Convert markers to JSON
     markers_list = []
-    print(f"[marker_api] Converting {markers.count()} markers to JSON")
-    
-    for i, marker in enumerate(markers):
+    print(f"[marker_api] Converting {final_count} markers to JSON")
+
+    for i, marker in enumerate(markers_qs):
         # Get the first image file as thumbnail if available
         thumbnail_url = None
-        if marker.files.exists():
-            first_file = marker.files.first()
-            if hasattr(first_file, 'file') and first_file.file and hasattr(first_file.file, 'url'):
-                thumbnail_url = first_file.file.url
-        
+        first_file = marker.files.first() # More efficient way to get the first file
+        if first_file and hasattr(first_file, 'file') and first_file.file and hasattr(first_file.file, 'url'):
+            thumbnail_url = first_file.file.url
+
         marker_data = {
             'id': marker.id,
             'lat': marker.latitude,
@@ -552,15 +638,14 @@ def marker_api(request):
             'source': marker.source,
             'user': marker.user.username,
             'upvotes': marker.upvote_count,
-            'thumbnail': thumbnail_url
+            'thumbnail': thumbnail_url,
+            'visibility': marker.visibility # Include visibility for potential frontend logic
         }
-        
         markers_list.append(marker_data)
-        
-        # Log every 100th marker to avoid excessive logging
-        if i % 100 == 0 or i == markers.count() - 1:
-            print(f"[marker_api] Processed marker {i+1}/{markers.count()}: {marker.title} (ID: {marker.id})")
-    
+
+        if i % 100 == 0 or i == final_count - 1:
+            print(f"[marker_api] Processed marker {i+1}/{final_count}: {marker.title} (ID: {marker.id})")
+
     print(f"[marker_api] Returning {len(markers_list)} markers")
     return JsonResponse({'markers': markers_list})
 
@@ -691,31 +776,41 @@ def marker_detail(request, marker_id):
     """Render the marker detail page."""
     print(f"[marker_detail] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username if request.user.is_authenticated else 'Anonymous'} is viewing marker {marker_id}")
-    
-    marker = get_object_or_404(Marker, id=marker_id)
+
+    try:
+        marker = get_object_or_404(Marker, id=marker_id)
+    except Http404:
+        logger.warning(f"Marker with ID {marker_id} not found.")
+        raise Http404("Marker not found") # Let Django handle the 404 page
+
     print(f"[marker_detail] Retrieved marker: {marker.title} (ID: {marker.id})")
 
-    # Check if user has permission to view this marker
-    if marker.visibility == 'private' and (not request.user.is_authenticated or marker.user != request.user):
-        print(f"[marker_detail] Permission denied: private marker, user: {request.user.username if request.user.is_authenticated else 'Anonymous'}")
-        logger.warning(f"Permission denied: User {request.user.username if request.user.is_authenticated else 'Anonymous'} attempted to view private marker {marker_id}")
-        return render(request, '403.html', status=403)
-    
-    # If marker is for verified users only, check if user is verified
-    if marker.user != request.user and marker.visibility == 'verified_only' and (not request.user.is_authenticated or
-                                               not hasattr(request.user, 'profile') or
-                                               not request.user.profile.is_verified):
-        print(f"[marker_detail] Permission denied: verified_only marker, user is not verified")
-        logger.warning(f"Permission denied: Non-verified user attempted to view verified_only marker {marker_id}")
-        return render(request, '403.html', status=403)
-    
+    # Check view permissions
+    can_view = False
+    if marker.visibility == 'public':
+        can_view = True
+    elif request.user.is_authenticated:
+        if marker.visibility == 'private' and marker.user == request.user: # Only owner for private
+            can_view = True
+        elif marker.visibility == 'verified_only' and (request.user.is_staff or marker.user == request.user): # Only staff or owner
+             can_view = True
+        # Add check for verified users if you have a specific field/group for that
+        # elif marker.visibility == 'verified_only' and request.user.profile.is_verified: # Example check
+        #     can_view = True
+
+    if not can_view:
+        print(f"[marker_detail] Permission denied for marker {marker_id}, user: {request.user.username if request.user.is_authenticated else 'Anonymous'}")
+        logger.warning(f"Permission denied: User {request.user.username if request.user.is_authenticated else 'Anonymous'} attempted to view marker {marker_id} with visibility '{marker.visibility}'")
+        return render(request, '403.html', status=403) # Render the 403 template
+
     # Get comments for the marker
-    comments = Comment.objects.filter(marker=marker).order_by('-created_at')
+    comments = Comment.objects.filter(marker=marker).select_related('user').order_by('-created_at')
     print(f"[marker_detail] Retrieved {comments.count()} comments")
         
     return render(request, 'marker-detail.html', {
         'marker': marker,
         'comments': comments,
+        'can_edit': request.user.is_authenticated and marker.user == request.user # Only owner can edit
     })
 
 
@@ -729,8 +824,8 @@ def delete_marker(request, marker_id):
     marker = get_object_or_404(Marker, id=marker_id)
     print(f"[delete_marker] Retrieved marker: {marker.title} (ID: {marker.id})")
     
-    # Check if user has permission to delete
-    if marker.user != request.user and not request.user.is_staff:
+    # Check if user is the owner
+    if marker.user != request.user:
         print(f"[delete_marker] Permission denied for user {request.user.username}")
         logger.warning(f"Permission denied: User {request.user.username} attempted to delete marker {marker_id}")
         return JsonResponse({

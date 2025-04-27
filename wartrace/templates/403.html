@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    {% load static %}
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; background-color: #f8f9fa; color: #343a40; }
+        .container { max-width: 600px; margin: 50px auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #dc3545; }
+        p { font-size: 1.1em; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>403 - Access Denied</h1>
+        <p>You do not have permission to access this page or resource.</p>
+        <p>Please contact the administrator if you believe this is an error.</p>
+        <p><a href="{% url 'content:index' %}">Return to Map</a> or <a href="{% url 'login' %}">Login</a></p>
+    </div>
+</body>
+</html>

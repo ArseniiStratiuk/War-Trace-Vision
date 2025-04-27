@@ -1,0 +1,784 @@
+/* Create/Edit Map Page Styles */
+#create-map,
+#edit-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30vh; /* Default responsive height, will be adjusted by JS */
+  min-height: 200px;
+  max-height: 300px;
+  z-index: 1;
+}
+
+.map-container {
+  height: 30vh;
+  min-height: 200px;
+  max-height: 300px;
+  position: relative;
+}
+
+/* App Header */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 3; /* Increased z-index to ensure it's above map */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.status::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* Back Button */
+.back-button {
+  position: fixed;
+  left: 15px;
+  top: 70px;
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  cursor: pointer;
+}
+
+.back-button svg {
+  width: 24px;
+  height: 24px;
+  fill: #333;
+}
+
+/* Create/Edit Panel */
+.create-panel,
+.edit-panel {
+  position: absolute;
+  top: 30vh; /* Default - will be dynamically adjusted by JS */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  overflow-y: auto;
+  padding-bottom: 80px; /* Space for action buttons */
+  transition: top 0.3s ease; /* Smooth transition when height changes */
+}
+
+.create-header,
+.edit-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 3;
+}
+
+.create-header h2,
+.edit-header h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.marker-coordinates {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.marker-coordinates svg {
+  width: 16px;
+  height: 16px;
+  fill: #666;
+  margin-right: 6px;
+}
+
+.create-content,
+.edit-content {
+  padding: 20px;
+}
+
+/* Form Elements */
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.form-section input[type="text"],
+.form-section input[type="date"],
+.form-section textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+}
+
+.form-section textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+/* Location options */
+.location-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.location-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.location-option.active {
+  background-color: #e0e7ff;
+  color: #4285F4;
+}
+
+.location-option svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 6px;
+  fill: #555;
+}
+
+.location-option.active svg {
+  fill: #4285F4;
+}
+
+.coords-input-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.coords-input-container input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.coords-go-btn {
+  padding: 12px 20px;
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Category Selector */
+.category-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-option {
+  flex: 1 0 calc(50% - 10px);
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.category-option.active {
+  background-color: #e0e7ff;
+  color: #4285F4;
+}
+
+.category-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.category-icon.infrastructure {
+  background-color: #E57373;
+}
+
+.category-icon.military {
+  background-color: #7B1FA2;
+}
+
+.category-icon.hazard {
+  background-color: #FFA000;
+}
+
+.category-icon.residential {
+  background-color: #388E3C;
+}
+
+/* Media Upload */
+.media-upload-container {
+  border: 2px dashed #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  text-align: center;
+}
+
+.media-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.media-preview-item {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 8px;
+  position: relative;
+  background-color: #eeeeee;
+}
+
+.media-preview-item img,
+.media-preview-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 12px;
+}
+
+.media-delete-btn:hover {
+  background-color: rgba(255, 0, 0, 0.9);
+}
+
+.empty-media-message {
+  width: 100%;
+  padding: 15px;
+  text-align: center;
+  color: #777;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.ai-info-text {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.media-delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.upload-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+}
+
+.upload-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: #555;
+  margin-right: 8px;
+}
+
+.file-input {
+  display: none;
+}
+
+/* AI Options */
+.ai-options {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.toggle-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.toggle-option:last-child {
+  margin-bottom: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #4285F4;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* Verification Section */
+.verification-section {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.verification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.verification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.verification-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Visibility Options */
+.visibility-options {
+  display: flex;
+  gap: 10px;
+}
+
+.visibility-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.visibility-option.active {
+  background-color: #e0e7ff;
+  color: #4285F4;
+}
+
+.visibility-option svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 6px;
+  fill: #555;
+}
+
+.visibility-option.active svg {
+  fill: #4285F4;
+}
+
+/* Action Buttons */
+.action-buttons {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.secondary-btn, 
+.primary-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  background-color: #f5f5f5;
+  color: #555;
+}
+
+.primary-btn {
+  background-color: #4285F4;
+  color: white;
+}
+
+.secondary-btn svg,
+.primary-btn svg {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.secondary-btn svg {
+  fill: #555;
+}
+
+.primary-btn svg {
+  fill: white;
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: bottom 0.3s ease-in-out;
+}
+
+.notification.show {
+  bottom: 80px;
+}
+
+.notification svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+  margin-right: 10px;
+}
+
+/* Fix for leaflet controls */
+.leaflet-control-container {
+  position: relative;
+  z-index: 5;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+  #create-map,
+  #edit-map,
+  .map-container {
+    height: 30vh;
+    min-height: 200px;
+    max-height: 300px;
+  }
+  
+  .create-panel,
+  .edit-panel {
+    top: 30vh; /* Default - will be overridden by JS */
+  }
+  
+  .category-option {
+    flex: 1 0 calc(25% - 10px);
+  }
+  
+  .media-preview-item {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* For small screens, ensure proper form element spacing */
+@media (max-width: 480px) {
+  .location-options {
+    flex-direction: column;
+  }
+  
+  .coords-input-container {
+    flex-direction: column;
+  }
+  
+  .visibility-options {
+    flex-direction: column;
+  }
+}
+
+/* Dark mode styles */
+body.dark-mode .app-header,
+body.dark-mode .create-panel,
+body.dark-mode .edit-panel,
+body.dark-mode .action-buttons {
+  background-color: #333;
+  color: #fff;
+}
+
+body.dark-mode .create-header,
+body.dark-mode .edit-header {
+  background-color: #333;
+  border-bottom-color: #555;
+}
+
+body.dark-mode .form-section label,
+body.dark-mode .form-section input,
+body.dark-mode .form-section textarea,
+body.dark-mode .marker-coordinates,
+body.dark-mode .verification-info p {
+  color: #eee;
+}
+
+body.dark-mode .form-section input[type="text"],
+body.dark-mode .form-section input[type="date"],
+body.dark-mode .form-section textarea {
+  background-color: #444;
+  border-color: #555;
+  color: #fff;
+}
+
+body.dark-mode .location-option,
+body.dark-mode .category-option,
+body.dark-mode .visibility-option,
+body.dark-mode .verification-section,
+body.dark-mode .ai-options {
+  background-color: #444;
+  color: #eee;
+}
+
+body.dark-mode .location-option svg,
+body.dark-mode .visibility-option svg,
+body.dark-mode .marker-coordinates svg {
+  fill: #eee;
+}
+
+body.dark-mode .toggle-slider {
+  background-color: #666;
+}
+
+body.dark-mode .toggle-slider:before {
+  background-color: #eee;
+}
+
+body.dark-mode .secondary-btn {
+  background-color: #444;
+  color: #eee;
+}
+
+body.dark-mode .secondary-btn svg {
+  fill: #eee;
+}
+
+body.dark-mode .back-button {
+  background-color: #444;
+}
+
+body.dark-mode .back-button svg {
+  fill: #eee;
+}
+
+body.dark-mode .media-upload-container {
+  background-color: #444;
+  border-color: #555;
+}
+
+body.dark-mode .upload-btn {
+  background-color: #555;
+  color: #eee;
+}
+
+body.dark-mode .upload-btn svg {
+  fill: #eee;
+}
+
+body.dark-mode .empty-media-message {
+  background: #333;
+  color: #aaa;
+}
+
+body.dark-mode .ai-info-text {
+  background-color: #263238;
+  color: #90caf9;
+}
+
+/* Distinctive marker styles for the edit map */
+.marker-infrastructure, 
+.marker-military, 
+.marker-hazard, 
+.marker-residential {
+  border-radius: 50%;
+  position: relative;
+}
+
+.marker-infrastructure {
+  background-color: #E57373;
+}
+
+.marker-military {
+  background-color: #7B1FA2;
+}
+
+.marker-hazard {
+  background-color: #FFA000;
+}
+
+.marker-residential {
+  background-color: #388E3C;
+}
+
+/* Pulsating effect for better visibility */
+.marker-pulse {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: rgba(66, 133, 244, 0.4);
+  box-shadow: 0 0 0 rgba(66, 133, 244, 0.6);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);
+  }
+  
+  70% {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}
