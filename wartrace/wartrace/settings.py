@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['10.10.224.181',
                  '127.0.0.1',
-                 'war-trace-vision-7ng2.onrender.com',
+                 'wartrace.onrender.com',
 ]
 
 

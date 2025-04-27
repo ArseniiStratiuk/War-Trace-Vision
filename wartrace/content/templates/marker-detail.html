@@ -65,7 +65,7 @@
 
       <div class="detail-section">
         <h3>Опис</h3>
-        <p id="marker-description">{{ marker.description }}</p>
+        <p style="white-space: pre-wrap" id="marker-description">{{ marker.description }}</p>
       </div>
 
       <div class="detail-section">
@@ -219,7 +219,7 @@
               <span class="verified-badge">Експерт</span>
               {% endif %}
             </div>
-            <p class="comment-text">{{ comment.text }}</p>
+            <p style="white-space: pre-wrap" class="comment-text">{{ comment.text }}</p>
             <div class="comment-actions">
               <button class="comment-upvote-btn" data-id="{{ comment.id }}">
                 <svg viewBox="0 0 24 24">
