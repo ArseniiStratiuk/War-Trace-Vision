@@ -271,7 +271,10 @@ class ModelService:
         file_stem = Path(file_path).stem
         output_filename = f"{file_stem}_{detector_type}.jpg"
         
-        # Store in detector-specific subfolder
+        # Define the storage path for compatibility with existing structure
+        storage_path = f"detection_results/{detector_type}/{output_filename}"
+        
+        # Store in detector-specific subfolder (keep for backward compatibility)
         output_dir = os.path.join(RESULTS_ROOT, detector_type)
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, output_filename)
@@ -325,11 +328,21 @@ class ModelService:
             # Draw annotations on the image
             annotated_img = self._draw_modern_annotations(original_img.copy(), detections, detector_type)
             
-            # Save the annotated image
-            cv2.imwrite(output_path, annotated_img)
-            logger.info(f"Saved annotated image to {output_path}")
+            # Save using both methods for transition period
+            # # 1. Traditional file system method (for backward compatibility)
+            # cv2.imwrite(output_path, annotated_img)
+            # logger.info(f"Saved annotated image to {output_path}")
             
-            # Define the URL path for accessing the result
+            # 2. Django storage system method (for production)
+            is_success, buffer = cv2.imencode(".jpg", annotated_img)
+            if not is_success:
+                logger.warning("Failed to encode image buffer, falling back to filesystem method")
+            else:
+                img_bytes = buffer.tobytes()
+                default_storage.save(storage_path, ContentFile(img_bytes))
+                logger.info(f"Saved annotated image to storage: {storage_path}")
+            
+            # Define the URL path for accessing the result (keep the same structure)
             relative_path = f"detection_results/{detector_type}/{output_filename}"
             
             # Create summary text
@@ -377,8 +390,15 @@ class ModelService:
                 1
             )
             
-            # Save error image
-            cv2.imwrite(output_path, error_img)
+            # Save error image using both methods
+            # # 1. Traditional method
+            # cv2.imwrite(output_path, error_img)
+            
+            # 2. Django storage method
+            is_success, buffer = cv2.imencode(".jpg", error_img)
+            if is_success:
+                img_bytes = buffer.tobytes()
+                default_storage.save(storage_path, ContentFile(img_bytes))
             
             relative_path = f"detection_results/{detector_type}/{output_filename}"
             
