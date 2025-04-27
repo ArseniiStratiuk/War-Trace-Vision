@@ -3,9 +3,10 @@ from .forms import UserRegistrationForm, ContactForm
 from volunteer_app.forms import RequestForm
 from volunteer_app.models import Request
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from authentication.decorators import login_required
 from volunteer_app.models import VolunteerViewedRequest
+from content.models import Marker # Import Marker model
 
 from .models import UserProfile
 def register(request):
@@ -37,6 +38,11 @@ def user_login(request):
         form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
 
+def user_logout(request):
+    """Handle user logout."""
+    logout(request)
+    return redirect('login')
+
 @login_required
 def personal_page(request):
     if not request.user.is_authenticated:
@@ -62,7 +68,8 @@ def personal_page(request):
         'socials_title': contacts.get('socials', {}).get('title', ''),
         'socials_link': contacts.get('socials', {}).get('link', ''),
     })
-    my_markers = None # TODO
+    # Fetch markers created by the current user
+    my_markers = Marker.objects.filter(user=request.user).order_by('-created_at')
 
     if request.method == 'POST':
         if 'name' in request.POST:  # Request Form submitted
@@ -86,7 +93,7 @@ def personal_page(request):
                 user_profile.save()
                 return redirect('personal_page')    
 
-    return render(request, 'personal_page.html', {'contacts': contacts, 'request_data': request_data, 'request_form': request_form, 'contact_form': contact_form, 'my_markes': my_markers, 'both_request_data':both_request_data})
+    return render(request, 'personal_page.html', {'contacts': contacts, 'request_data': request_data, 'request_form': request_form, 'contact_form': contact_form, 'my_markers': my_markers, 'both_request_data':both_request_data})
 
 def bad_category(request):
     return render(request, 'bad_category.html')

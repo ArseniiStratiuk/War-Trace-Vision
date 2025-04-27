@@ -10,7 +10,7 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    path('logout/', auth_views.LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'), #add logout
+    path('logout/', views.user_logout, name='logout'), #add logout
     path('personal/', views.personal_page, name='personal_page'),
     path('bad_category/', views.bad_category, name='bad_category'),
     path('profile/<int:volunteer_id>', views.profile, name='profile'),

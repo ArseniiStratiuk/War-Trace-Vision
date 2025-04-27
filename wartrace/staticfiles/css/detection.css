@@ -1,0 +1,424 @@
+/* Detection Results Page Styling */
+.detection-results .header-section,
+.detection-detail .header-section,
+.process-marker .header-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.marker-metadata {
+    margin: 1rem 0;
+}
+
+.marker-metadata .badge {
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.marker-category {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.marker-verification {
+    background-color: #2ecc71;
+    color: #fff;
+}
+
+.summary-box {
+    display: flex;
+    margin: 1.5rem 0;
+    background-color: #f9f9f9;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    justify-content: space-between;
+    max-width: 500px;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.summary-item .count {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+    color: #3498db;
+}
+
+.summary-item .label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.detection-types {
+    margin-bottom: 2rem;
+}
+
+.detection-type-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.detection-type-card {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+}
+
+.detection-type-card.enabled {
+    border-color: #3498db;
+    background-color: #f0f7fd;
+}
+
+.detection-type-card.disabled {
+    opacity: 0.7;
+}
+
+.detection-type-card h4 {
+    margin-top: 0;
+    color: #333;
+}
+
+.detection-type-card p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.file-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.file-section h3 {
+    margin-bottom: 1rem;
+}
+
+.file-info {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: normal;
+}
+
+.original-image {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.original-image img {
+    max-height: 300px;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.detection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.detection-card {
+    border: 1px solid #eee;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.detection-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.detection-card h4 {
+    background-color: #3498db;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.detection-image {
+    text-align: center;
+    background-color: #f9f9f9;
+    padding: 0.5rem;
+}
+
+.detection-image img {
+    max-height: 250px;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.detection-info {
+    padding: 1rem;
+}
+
+.detection-summary {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.detection-details {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.detection-details p {
+    margin-bottom: 0.25rem;
+}
+
+.object-classes {
+    margin-bottom: 1rem;
+}
+
+.object-classes .badge {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Lightbox styling */
+.detection-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 0.25rem;
+}
+
+.close-lightbox {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Process marker page styles */
+.model-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.model-option-card {
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    position: relative;
+    background-color: #f9f9f9;
+}
+
+.model-option-card.enabled {
+    border-color: #3498db;
+    background-color: #f0f7fd;
+}
+
+.model-option-card.disabled {
+    opacity: 0.7;
+}
+
+.model-option-card h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    padding-right: 60px;
+}
+
+.model-option-card p {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.toggle-switch {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: space-between;
+    max-width: 500px;
+    margin: 1.5rem 0;
+}
+
+.result-stat {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 0.5rem;
+    flex: 1;
+    margin: 0 0.5rem;
+}
+
+.result-stat .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+    color: #3498db;
+}
+
+.result-stat .stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Detection detail page specific */
+.detection-content .card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.detection-content .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detection-content .card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.summary-card {
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 0.5rem;
+}
+
+.detection-stats {
+    display: flex;
+    margin: 1rem 0;
+}
+
+.detection-stats .stat-item {
+    text-align: center;
+    padding: 0 1rem;
+    flex: 1;
+}
+
+.detection-stats .stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: block;
+    color: #3498db;
+}
+
+.detection-stats .stat-label {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.object-classes-badges {
+    margin-top: 1rem;
+}
+
+.table-objects {
+    font-size: 0.9rem;
+}
+
+.table-objects td, .table-objects th {
+    vertical-align: middle;
+}
+
+/* Toggle switch styling */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #3498db;
+}
+
+input:disabled + .toggle-slider {
+    background-color: #ddd;
+    cursor: not-allowed;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* AI analysis section for marker detail page */
+.ai-analysis-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.ai-analysis-empty {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.ai-analysis-empty p {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: #555;
+}
