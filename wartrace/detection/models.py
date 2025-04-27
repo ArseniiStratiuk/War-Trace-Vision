@@ -3,6 +3,7 @@ from django.conf import settings
 from content.models import MarkerFile
 import os
 import json
+from django.core.files.storage import default_storage
 
 class Detection(models.Model):
     """
@@ -53,7 +54,17 @@ class Detection(models.Model):
         path = self.image_path
         if path.startswith('/'):
             path = path[1:]
-            
+        
+        # First try Django's storage system (for new files)
+        try:
+            # Check if the file exists in storage
+            if default_storage.exists(path):
+                return default_storage.url(path)
+        except Exception as e:
+            # Log but continue to fallback method
+            pass
+        
+        # Fallback to the old method (for existing files)
         return os.path.join(settings.MEDIA_URL, path)
     
     @property
