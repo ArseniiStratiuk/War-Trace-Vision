@@ -33,7 +33,11 @@ def edit_marker_view(request, marker_id):
         marker_id: The ID of the marker to edit
         
     Returns:
-        Rendered template for editing the marker
+        HttpResponse: Rendered template for editing the marker
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user is not the owner of the marker
     """
     print(f"[edit_marker_view] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is attempting to edit marker {marker_id}")
@@ -57,12 +61,19 @@ def edit_marker_submit(request, marker_id):
     """
     Handle marker editing form submission.
     
+    Updates a marker with the data provided in the form, including metadata,
+    visibility settings, and detection options. Also processes any new files.
+    
     Args:
         request: The HTTP request object containing form data
         marker_id: The ID of the marker to edit
         
     Returns:
-        JsonResponse with the result of the operation
+        JsonResponse: Result of the operation with success status and message
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user is not the owner of the marker
     """
     print(f"[edit_marker_submit] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is submitting edits for marker {marker_id}")
@@ -149,13 +160,19 @@ def delete_media(request, marker_id, file_id):
     """
     Delete a media file associated with a marker.
     
+    Removes the file both from storage and the database.
+    
     Args:
         request: The HTTP request object
         marker_id: The ID of the marker
         file_id: The ID of the file to delete
         
     Returns:
-        JsonResponse with the result of the operation
+        JsonResponse: Result of the operation with success status
+        
+    Raises:
+        Http404: If the marker or file does not exist
+        PermissionDenied: If the user is not the owner of the marker
     """
     print(f"[delete_media] Entering function with marker_id: {marker_id}, file_id: {file_id}")
     logger.info(f"User {request.user.username} is attempting to delete file {file_id} from marker {marker_id}")
@@ -207,7 +224,23 @@ def delete_media(request, marker_id, file_id):
 @login_required
 @require_http_methods(["POST"])
 def add_comment(request, marker_id):
-    """Handle comment submission for a marker."""
+    """
+    Handle comment submission for a marker.
+    
+    Creates a new comment on the specified marker after verifying
+    the user has permission to view and comment on it.
+    
+    Args:
+        request: The HTTP request object containing comment data
+        marker_id: The ID of the marker to comment on
+        
+    Returns:
+        JsonResponse: Contains the created comment data or error details
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user cannot view the marker
+    """
     print(f"[add_comment] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is attempting to add a comment to marker {marker_id}")
     
@@ -283,7 +316,24 @@ def add_comment(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def add_media(request, marker_id):
-    """Handle media file uploads for a marker."""
+    """
+    Handle media file uploads for a marker.
+    
+    Processes and saves file uploads for the specified marker,
+    creating MarkerFile instances for each uploaded file.
+    
+    Args:
+        request: The HTTP request object containing uploaded files
+        marker_id: The ID of the marker to add media to
+        
+    Returns:
+        JsonResponse or HttpResponseRedirect: Information about uploaded files
+            or redirect to marker detail page
+            
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user is not the owner of the marker
+    """
     print(f"[add_media] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is attempting to add media to marker {marker_id}")
     
@@ -354,7 +404,22 @@ def add_media(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def verify_marker(request, marker_id):
-    """Handle marker verification."""
+    """
+    Handle marker verification by staff members.
+    
+    Updates the verification status of a marker. Only accessible to staff.
+    
+    Args:
+        request: The HTTP request object containing verification data
+        marker_id: The ID of the marker to verify
+        
+    Returns:
+        JsonResponse: Contains updated verification status or error details
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user is not a staff member
+    """
     print(f"[verify_marker] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is attempting to verify marker {marker_id}")
     
@@ -404,7 +469,22 @@ def verify_marker(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def upvote_marker(request, marker_id):
-    """Handle marker upvoting."""
+    """
+    Handle marker upvoting.
+    
+    Toggles the current user's upvote on the specified marker.
+    
+    Args:
+        request: The HTTP request object
+        marker_id: The ID of the marker to upvote
+        
+    Returns:
+        JsonResponse: Contains updated upvote count and action performed
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user cannot view the marker
+    """
     print(f"[upvote_marker] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is toggling upvote for marker {marker_id}")
     
@@ -453,7 +533,22 @@ def upvote_marker(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def upvote_comment(request, comment_id):
-    """Handle comment upvoting."""
+    """
+    Handle comment upvoting.
+    
+    Toggles the current user's upvote on the specified comment.
+    
+    Args:
+        request: The HTTP request object
+        comment_id: The ID of the comment to upvote
+        
+    Returns:
+        JsonResponse: Contains updated vote count and action performed
+        
+    Raises:
+        Http404: If the comment does not exist
+        PermissionDenied: If the user cannot view the associated marker
+    """
     print(f"[upvote_comment] Entering function with comment_id: {comment_id}")
     logger.info(f"User {request.user.username} is toggling upvote for comment {comment_id}")
     
@@ -503,7 +598,23 @@ def upvote_comment(request, comment_id):
 @login_required
 @require_http_methods(["POST"])
 def report_marker(request, marker_id):
-    """Handle marker reporting."""
+    """
+    Handle marker reporting.
+    
+    Creates a report for the specified marker and updates the marker's
+    verification status if it receives multiple reports.
+    
+    Args:
+        request: The HTTP request object containing report reason
+        marker_id: The ID of the marker to report
+        
+    Returns:
+        JsonResponse: Contains report submission status
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user cannot view the marker
+    """
     print(f"[report_marker] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is reporting marker {marker_id}")
     
@@ -576,7 +687,18 @@ def report_marker(request, marker_id):
 
 
 def marker_api(request):
-    """API endpoint to get markers for map display"""
+    """
+    API endpoint to get markers for map display.
+    
+    Filters markers based on user permissions and visibility settings,
+    then returns formatted marker data for the map interface.
+    
+    Args:
+        request: The HTTP request object
+        
+    Returns:
+        JsonResponse: Contains list of filtered markers with their metadata
+    """
     print("[marker_api] Entering function")
     user = request.user
     print(f"[marker_api] User: {'Authenticated: ' + user.username if user.is_authenticated else 'Anonymous'}")
@@ -651,7 +773,15 @@ def marker_api(request):
 
 
 def index(request):
-    """Render the main map view."""
+    """
+    Render the main map view.
+    
+    Args:
+        request: The HTTP request object
+        
+    Returns:
+        HttpResponse: Rendered map template
+    """
     print("[index] Entering function")
     logger.info(f"User {request.user.username if request.user.is_authenticated else 'Anonymous'} is viewing the main map")
     return render(request, 'map.html')
@@ -659,7 +789,15 @@ def index(request):
 
 @login_required
 def create_marker_view(request):
-    """Render the marker creation page."""
+    """
+    Render the marker creation page.
+    
+    Args:
+        request: The HTTP request object
+        
+    Returns:
+        HttpResponse: Rendered marker creation template
+    """
     print("[create_marker_view] Entering function")
     logger.info(f"User {request.user.username} is viewing the marker creation page")
     return render(request, 'marker-create.html')
@@ -668,7 +806,21 @@ def create_marker_view(request):
 @login_required
 @require_http_methods(["POST"])
 def create_marker(request):
-    """Handle marker creation form submission."""
+    """
+    Handle marker creation form submission.
+    
+    Processes form data to create a new marker with specified attributes,
+    handles file uploads, and sets verification status if requested.
+    
+    Args:
+        request: The HTTP request object containing form data
+        
+    Returns:
+        JsonResponse: Contains marker creation status and the new marker ID
+        
+    Raises:
+        Exception: If marker creation fails due to invalid data or server error
+    """
     print("[create_marker] Entering function")
     logger.info(f"User {request.user.username} is creating a new marker")
     
@@ -773,7 +925,23 @@ def create_marker(request):
 
 
 def marker_detail(request, marker_id):
-    """Render the marker detail page."""
+    """
+    Render the marker detail page.
+    
+    Retrieves and displays detailed information about a marker,
+    including comments, after verifying the user has permission to view it.
+    
+    Args:
+        request: The HTTP request object
+        marker_id: The ID of the marker to display
+        
+    Returns:
+        HttpResponse: Rendered marker detail template with context
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user cannot view the marker
+    """
     print(f"[marker_detail] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username if request.user.is_authenticated else 'Anonymous'} is viewing marker {marker_id}")
 
@@ -817,7 +985,22 @@ def marker_detail(request, marker_id):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_marker(request, marker_id):
-    """Handle marker deletion."""
+    """
+    Handle marker deletion.
+    
+    Deletes a marker and all associated files from both storage and database.
+    
+    Args:
+        request: The HTTP request object
+        marker_id: The ID of the marker to delete
+        
+    Returns:
+        JsonResponse: Contains deletion status and result message
+        
+    Raises:
+        Http404: If the marker does not exist
+        PermissionDenied: If the user is not the owner of the marker
+    """
     print(f"[delete_marker] Entering function with marker_id: {marker_id}")
     logger.info(f"User {request.user.username} is attempting to delete marker {marker_id}")
     

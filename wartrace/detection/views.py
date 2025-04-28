@@ -29,11 +29,32 @@ worker_pool = ThreadPoolExecutor(max_workers=2)
 processing_markers = {}
 
 def can_edit_marker(user, marker):
-    """Check if user can edit the marker"""
+    """
+    Check if a user has permission to edit a marker.
+    
+    Args:
+        user: The User object representing the current user
+        marker: The Marker object to check permission for
+        
+    Returns:
+        bool: True if the user can edit the marker, False otherwise
+    """
     return user.is_staff or marker.user == user
 
 def can_view_marker(user, marker):
-    """Check if user can view the marker (more permissive)"""
+    """
+    Check if a user has permission to view a marker.
+    
+    More permissive than the edit permission, allows public markers to be viewed
+    by anyone, and handles visibility settings like 'private' and 'verified_only'.
+    
+    Args:
+        user: The User object representing the current user
+        marker: The Marker object to check permission for
+        
+    Returns:
+        bool: True if the user can view the marker, False otherwise
+    """
     # If public marker, anyone can view
     if marker.visibility == 'public':
         return True
@@ -52,7 +73,17 @@ def can_view_marker(user, marker):
 @login_required
 def process_marker_view(request, marker_id):
     """
-    Process a marker with AI detection
+    Process a marker with AI detection.
+    
+    Renders a confirmation page for reprocessing if needed, then triggers
+    the AI detection process for the marker's files.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        marker_id: The ID of the marker to process
+        
+    Returns:
+        HttpResponse object with the processing result or confirmation page
     """
     marker = get_object_or_404(Marker, id=marker_id)
     
@@ -144,7 +175,19 @@ def process_marker_view(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def process_marker_api(request, marker_id):
-    """API endpoint to start marker processing"""
+    """
+    API endpoint to start marker processing.
+    
+    Validates permissions, updates marker detection settings based on form data,
+    and starts the background processing task.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        marker_id: The ID of the marker to process
+        
+    Returns:
+        JsonResponse with the processing status and message
+    """
     marker = get_object_or_404(Marker, id=marker_id)
     
     # Check permissions
@@ -215,7 +258,18 @@ def process_marker_api(request, marker_id):
 
 @login_required
 def marker_processing_status(request, marker_id):
-    """Get the current processing status for a marker"""
+    """
+    Get the current processing status for a marker.
+    
+    Retrieves the processing status from the global tracking dictionary.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        marker_id: The ID of the marker to check status for
+        
+    Returns:
+        JsonResponse with the current processing status and progress
+    """
     marker = get_object_or_404(Marker, id=marker_id)
     
     # Check permissions
@@ -241,7 +295,19 @@ def marker_processing_status(request, marker_id):
 @login_required
 @require_http_methods(["POST"])
 def auto_process_marker(request, marker_id):
-    """Automatically start processing for a marker based on its detection settings"""
+    """
+    Automatically start processing for a marker based on its detection settings.
+    
+    Uses the marker's existing detection settings to determine which detector
+    types to run.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        marker_id: The ID of the marker to process
+        
+    Returns:
+        JsonResponse with the processing status and detector types
+    """
     marker = get_object_or_404(Marker, id=marker_id)
     
     # Check permissions
@@ -305,7 +371,19 @@ def auto_process_marker(request, marker_id):
         }, status=500)
 
 def process_marker_background(marker, detector_types):
-    """Process a marker in background thread"""
+    """
+    Process a marker in background thread.
+    
+    Handles the actual processing work asynchronously, updating the global
+    status dictionary with progress and results.
+    
+    Args:
+        marker: The Marker object to process
+        detector_types: List of detector type identifiers to apply
+        
+    Returns:
+        None
+    """
     marker_id = marker.id
     
     try:
@@ -348,7 +426,17 @@ def process_marker_background(marker, detector_types):
 @login_required
 def marker_detection_results(request, marker_id):
     """
-    Display all detection results for a marker
+    Display all detection results for a marker.
+    
+    Retrieves and organizes detection results for a marker's files,
+    grouping by detector type and calculating statistics.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        marker_id: The ID of the marker to display results for
+        
+    Returns:
+        HttpResponse object rendering the results template with context
     """
     marker = get_object_or_404(Marker, id=marker_id)
 
@@ -466,7 +554,19 @@ def marker_detection_results(request, marker_id):
 
 @login_required
 def detection_detail(request, detection_id):
-    """View detailed information about a specific detection"""
+    """
+    View detailed information about a specific detection.
+    
+    Retrieves a detection and its associated objects, calculates
+    statistics and renders the detail page.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        detection_id: The ID of the detection to display
+        
+    Returns:
+        HttpResponse object rendering the detection detail template
+    """
     detection = get_object_or_404(Detection, id=detection_id)
     marker = detection.marker_file.marker
     
@@ -515,7 +615,17 @@ def detection_detail(request, detection_id):
 
 @login_required
 def available_models(request):
-    """API endpoint to get available detection models"""
+    """
+    API endpoint to get available detection models.
+    
+    Retrieves the list of enabled detection model configurations.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        
+    Returns:
+        JsonResponse with the list of available models
+    """
     detector_configs = DetectionConfig.objects.filter(is_enabled=True).order_by('order')
     
     models = []
@@ -535,7 +645,18 @@ def available_models(request):
 
 @login_required
 def process_file_view(request, file_id):
-    """View for processing a single marker file"""
+    """
+    View for processing a single marker file.
+    
+    Currently redirects to the marker processing view for simplicity.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        file_id: The ID of the marker file to process
+        
+    Returns:
+        HttpResponseRedirect to the marker processing view
+    """
     marker_file = get_object_or_404(MarkerFile, id=file_id)
     marker = marker_file.marker
     
@@ -551,7 +672,18 @@ def process_file_view(request, file_id):
 
 @login_required
 def file_detection_results(request, file_id):
-    """View detection results for a specific file"""
+    """
+    View detection results for a specific file.
+    
+    Currently redirects to the marker results page for simplicity.
+    
+    Args:
+        request: HttpRequest object containing metadata about the request
+        file_id: The ID of the marker file to view results for
+        
+    Returns:
+        HttpResponseRedirect to the marker results page
+    """
     marker_file = get_object_or_404(MarkerFile, id=file_id)
     marker = marker_file.marker
     
