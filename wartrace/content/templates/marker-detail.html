@@ -16,6 +16,9 @@
 
   <!-- App Header -->
   <div class="app-header">
+    <div class="app-logo">
+      <img src="{% static 'logo.png' %}" alt="War Trace Vision Logo">
+    </div>
     <h1>War Trace Vision</h1>
     <div class="status">Наживо • Аналізується</div>
   </div>
@@ -913,6 +916,8 @@
         const formData = new FormData();
         formData.append('object_detection', object_detection ? 'on' : 'off');
         formData.append('military_detection', military_detection ? 'on' : 'off');
+        formData.append('damage_assessment', 'off'); // Keep these for compatibility 
+        formData.append('emergency_recognition', 'off'); // Keep these for compatibility
         
         // Update marker on backend with selected detection types and start processing
         fetch(`/detection/api/markers/{{ marker.id }}/process/`, {
