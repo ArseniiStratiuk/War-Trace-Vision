@@ -9,11 +9,11 @@ import traceback
 import random
 import time
 
-from django.conf import settings
 from django.core.files.storage import default_storage
+from django.conf import settings
 from django.core.files.base import ContentFile
 
-from ..models import Detection, ObjectDetection, ClassificationResult
+from ..models import Detection, ObjectDetection
 
 logger = logging.getLogger(__name__)
 
@@ -267,18 +267,15 @@ class ModelService:
     
     def _process_with_yolo(self, file_path: str, detector_type: str, model, config: Dict) -> Dict:
         """Process an image with a YOLO model"""
-        # Generate output filename and path
         file_stem = Path(file_path).stem
         output_filename = f"{file_stem}_{detector_type}.jpg"
         
-        # Define the storage path for compatibility with existing structure
-        storage_path = f"detection_results/{detector_type}/{output_filename}"
+        # Remove any reference to actual file system paths
+        # Only keep storage_path for metadata purposes
+        storage_path = f"detection_results/{detector_type}/{output_filename}" 
         
-        # Store in detector-specific subfolder (keep for backward compatibility)
-        output_dir = os.path.join(RESULTS_ROOT, detector_type)
-        os.makedirs(output_dir, exist_ok=True)
-        output_path = os.path.join(output_dir, output_filename)
-        
+        annotated_image_content = None # Initialize variable to store image content
+
         try:
             # Run inference with the model
             threshold = config.get('threshold', 0.30)
@@ -328,21 +325,19 @@ class ModelService:
             # Draw annotations on the image
             annotated_img = self._draw_modern_annotations(original_img.copy(), detections, detector_type)
             
-            # Save using both methods for transition period
-            # # 1. Traditional file system method (for backward compatibility)
-            # cv2.imwrite(output_path, annotated_img)
-            # logger.info(f"Saved annotated image to {output_path}")
-            
-            # 2. Django storage system method (for production)
+            # Encode image to bytes and create ContentFile - ONLY store in DB, not filesystem
             is_success, buffer = cv2.imencode(".jpg", annotated_img)
             if not is_success:
-                logger.warning("Failed to encode image buffer, falling back to filesystem method")
+                logger.warning("Failed to encode annotated image buffer.")
             else:
-                img_bytes = buffer.tobytes()
-                default_storage.save(storage_path, ContentFile(img_bytes))
-                logger.info(f"Saved annotated image to storage: {storage_path}")
+                annotated_image_content = ContentFile(buffer.tobytes(), name=output_filename)
+                logger.info(f"Encoded annotated image into ContentFile: {output_filename}")
             
-            # Define the URL path for accessing the result (keep the same structure)
+            # No filesystem saving - REMOVED
+            # cv2.imwrite(output_path, annotated_img)
+            # default_storage.save(storage_path, ContentFile(img_bytes))
+            
+            # Define the URL path for reference only, not for actual file storage
             relative_path = f"detection_results/{detector_type}/{output_filename}"
             
             # Create summary text
@@ -359,10 +354,11 @@ class ModelService:
             
             return {
                 'detections': detections,
-                'output_path': output_path,
-                'relative_path': relative_path,
+                'relative_path': relative_path, # Just for reference in metadata
                 'summary': summary,
-                'inference_time': inference_time
+                'inference_time': inference_time,
+                'annotated_image_content': annotated_image_content, # ContentFile for DB storage
+                'output_filename': output_filename # For DB storage
             }
             
         except Exception as e:
@@ -390,23 +386,23 @@ class ModelService:
                 1
             )
             
-            # Save error image using both methods
-            # # 1. Traditional method
-            # cv2.imwrite(output_path, error_img)
-            
-            # 2. Django storage method
+            # Encode error image and create ContentFile - ONLY store in DB
             is_success, buffer = cv2.imencode(".jpg", error_img)
             if is_success:
-                img_bytes = buffer.tobytes()
-                default_storage.save(storage_path, ContentFile(img_bytes))
-            
+                annotated_image_content = ContentFile(buffer.tobytes(), name=output_filename)
+                logger.info(f"Encoded error image into ContentFile: {output_filename}")
+            else:
+                logger.error("Failed to encode error image buffer.")
+
+            # Remove all filesystem saving for error image
             relative_path = f"detection_results/{detector_type}/{output_filename}"
             
             return {
                 'detections': [],
-                'output_path': output_path,
-                'relative_path': relative_path,
-                'summary': f"Error processing image: {str(e)}"
+                'relative_path': relative_path, # Just for reference in metadata
+                'summary': f"Error processing image: {str(e)}",
+                'annotated_image_content': annotated_image_content,
+                'output_filename': output_filename
             }
     
     def _draw_modern_annotations(self, img, detections, detector_type):
@@ -633,6 +629,32 @@ def process_marker_file(marker_file, detector_types: List[str]) -> List[Detectio
         existing_detections = marker_file.detections.filter(detector_type__in=detector_types)
         if existing_detections.exists():
             logger.info(f"Found {existing_detections.count()} existing detections, deleting them for reprocessing")
+            
+            # Delete both DB-stored processed_image files AND any legacy filesystem images
+            for det in existing_detections:
+                # 1. Clean up DB-stored images first
+                if det.processed_image:
+                    try:
+                        det.processed_image.delete(save=False)  # Delete file from storage
+                        logger.info(f"Deleted DB-stored image for detection {det.id}")
+                    except Exception as e:
+                        logger.error(f"Error deleting DB-stored image for detection {det.id}: {str(e)}")
+                
+                # 2. Clean up any legacy filesystem images
+                if det.image_path:
+                    try:
+                        legacy_path = det.image_path
+                        if legacy_path.startswith('/'):
+                            legacy_path = legacy_path[1:]
+                        
+                        # Check if file exists in storage before trying to delete
+                        if default_storage.exists(legacy_path):
+                            default_storage.delete(legacy_path)
+                            logger.info(f"Deleted legacy filesystem image: {legacy_path}")
+                    except Exception as e:
+                        logger.error(f"Error deleting legacy filesystem image: {str(e)}")
+            
+            # Now delete the detection records
             existing_detections.delete()
         
         # Process with model service
@@ -653,41 +675,51 @@ def process_marker_file(marker_file, detector_types: List[str]) -> List[Detectio
             try:
                 logger.info(f"Creating detection record for {detector_type}")
                 
-                # Create base detection record
+                result = result_data['result']
+                
+                # Create base detection with only the processed_image field, not image_path
                 detection = Detection(
                     marker_file=marker_file,
                     detector_type=detector_type,
-                    model_name=result_data['model_name']
+                    model_name=result_data['model_name'],
+                    summary=result.get('summary', '')
                 )
                 
-                result = result_data['result']
-                
-                # Store overall summary
-                detection.summary = result.get('summary', '')
-                
-                # Store the relative path for serving via URL
-                if 'relative_path' in result:
-                    detection.image_path = result['relative_path']
-                
-                # Store inference time if available
+                # Set metadata
                 if 'inference_time' in result:
                     detection.metadata = {'inference_time': result['inference_time']}
                 
+                # Store image ONLY in the processed_image field, not filesystem
+                annotated_image_content = result.get('annotated_image_content')
+                output_filename = result.get('output_filename')
+                
+                if annotated_image_content and output_filename:
+                    try:
+                        detection.processed_image.save(output_filename, annotated_image_content, save=False)
+                        logger.info(f"Saved processed image to database for detection {detector_type}")
+                    except Exception as e:
+                        logger.error(f"Error saving processed image to database: {str(e)}")
+                        
+                    # Don't set image_path for new detections - use only processed_image field
+                else:
+                    logger.warning(f"No image content for {detector_type} detection")
+                
+                # Save the detection record
                 detection.save()
                 logger.info(f"Saved detection ID {detection.id}")
                 
-                # Store individual detections
-                for det in result.get('detections', []):
-                    object_detection = ObjectDetection.objects.create(
+                # Store individual detections (ObjectDetection instances)
+                for det_data in result.get('detections', []):
+                    ObjectDetection.objects.create(
                         detection=detection,
-                        label=det['label'],
-                        confidence=det['confidence'],
-                        x_min=det['bbox'][0],
-                        y_min=det['bbox'][1],
-                        x_max=det['bbox'][2],
-                        y_max=det['bbox'][3]
+                        label=det_data['label'],
+                        confidence=det_data['confidence'],
+                        x_min=det_data['bbox'][0],
+                        y_min=det_data['bbox'][1],
+                        x_max=det_data['bbox'][2],
+                        y_max=det_data['bbox'][3]
                     )
-                    logger.info(f"Created object detection {object_detection.id}: {det['label']} ({det['confidence']:.2f})")
+                    # logger.info(f"Created object detection {object_detection.id}: {det_data['label']} ({det_data['confidence']:.2f})") # Redundant logging
                 
                 detection_objects.append(detection)
                 

@@ -87,8 +87,36 @@ def process_marker_view(request, marker_id):
     if detection_count > 0:
         if request.method == 'POST' and request.POST.get('confirm_reprocess') == 'yes':
             # User confirmed reprocessing, delete old detections
+            logger.info(f"Reprocessing marker {marker_id} - deleting {detection_count} existing detections")
+            
             for marker_file in marker.files.all():
-                marker_file.detections.filter(detector_type__in=detector_types).delete()
+                file_detections = marker_file.detections.filter(detector_type__in=detector_types)
+                
+                # Clean up both DB-stored and legacy filesystem images before deleting records
+                for detection in file_detections:
+                    # Clean up DB-stored images
+                    if detection.processed_image:
+                        try:
+                            detection.processed_image.delete(save=False)
+                            logger.info(f"Deleted DB-stored image for detection {detection.id}")
+                        except Exception as e:
+                            logger.error(f"Error deleting DB-stored image: {str(e)}")
+                    
+                    # Clean up legacy filesystem images
+                    if detection.image_path:
+                        try:
+                            legacy_path = detection.image_path
+                            if legacy_path.startswith('/'):
+                                legacy_path = legacy_path[1:]
+                            
+                            if default_storage.exists(legacy_path):
+                                default_storage.delete(legacy_path)
+                                logger.info(f"Deleted legacy filesystem image: {legacy_path}")
+                        except Exception as e:
+                            logger.error(f"Error deleting legacy filesystem image: {str(e)}")
+                
+                # Now delete the detection records
+                file_detections.delete()
         else:
             # Ask for confirmation before reprocessing
             return render(request, 'detection/confirm_reprocess.html', {
@@ -389,7 +417,7 @@ def marker_detection_results(request, marker_id):
                     'detector_display_name': detector_display_name,
                     'model_name': detection.model_name,
                     'summary': detection.summary,
-                    'image_url': detection.image_url,
+                    'image_url': detection.image_url,  # Uses the property that handles both storage methods
                     'object_count': detection.objects.count(),
                     'object_classes': object_classes,
                     'inference_time': inference_time,
@@ -479,7 +507,8 @@ def detection_detail(request, detection_id):
         'total_objects': objects.count(),
         'object_classes': object_classes,
         'detector_display_name': display_name,
-        'model_description': model_description
+        'model_description': model_description,
+        'image_url': detection.image_url  # Uses the property that handles both storage methods
     }
     
     return render(request, 'detection/detection_detail.html', context)

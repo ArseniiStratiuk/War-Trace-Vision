@@ -4,6 +4,7 @@ from content.models import MarkerFile
 import os
 import json
 from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile # Import ContentFile
 
 class Detection(models.Model):
     """
@@ -26,8 +27,11 @@ class Detection(models.Model):
     # Summary of detection results (e.g., "Found 5 objects: 2 persons, 3 vehicles")
     summary = models.TextField(blank=True)
     
-    # Path to the processed image (relative to MEDIA_URL)
-    image_path = models.CharField(max_length=255, blank=True)
+    # Path to the processed image (relative to MEDIA_URL) - Kept for backward compatibility
+    image_path = models.CharField(max_length=255, blank=True, null=True) # Allow null
+    
+    # New field to store the processed image directly
+    processed_image = models.FileField(upload_to='detection_results/', null=True, blank=True)
     
     # Optional metadata/attributes as JSON (inference time, settings used, etc.)
     metadata = models.JSONField(null=True, blank=True)
@@ -47,25 +51,34 @@ class Detection(models.Model):
     @property
     def image_url(self):
         """Return the full URL to the processed image"""
-        if not self.image_path:
-            return None
+        # Prioritize the new FileField
+        if self.processed_image and hasattr(self.processed_image, 'url'):
+            try:
+                return self.processed_image.url
+            except ValueError:
+                # Handle cases where the file might be missing or storage fails
+                pass
         
-        # Remove leading slash if present to make path joining work correctly
-        path = self.image_path
-        if path.startswith('/'):
-            path = path[1:]
-        
-        # First try Django's storage system (for new files)
-        try:
-            # Check if the file exists in storage
-            if default_storage.exists(path):
-                return default_storage.url(path)
-        except Exception as e:
-            # Log but continue to fallback method
-            pass
-        
-        # Fallback to the old method (for existing files)
-        return os.path.join(settings.MEDIA_URL, path)
+        # Fallback to the old image_path for backward compatibility
+        if self.image_path:
+            path = self.image_path
+            if path.startswith('/'):
+                path = path[1:]
+            # Construct URL using MEDIA_URL (assuming default filesystem storage for old files)
+            # Note: This might need adjustment depending on how MEDIA_URL and storage were configured previously.
+            try:
+                # Check if the old path exists using default storage for robustness
+                if default_storage.exists(path):
+                     # Use storage URL method if possible, otherwise join manually
+                    try:
+                        return default_storage.url(path)
+                    except NotImplementedError:
+                         return os.path.join(settings.MEDIA_URL, path)
+            except Exception:
+                 # If storage check fails, fallback to simple join
+                 return os.path.join(settings.MEDIA_URL, path)
+
+        return None # No image available
     
     @property
     def is_object_detection(self):
