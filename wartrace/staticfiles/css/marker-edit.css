@@ -1,7 +1,0 @@
-/* 
- * Marker edit styles are now consolidated with marker-create.css
- * for consistency and easier maintenance.
- * Please use marker-create.css for both create and edit pages.
- */
-
-@import url('./marker-create.css');
