@@ -31,8 +31,8 @@ MODEL_CONFIG = {
         'yolo11m': {
             'model_path': os.path.join(MODELS_ROOT, 'yolo11m.pt'),
             'type': 'ultralytics',
-            'threshold': 0.30,  # Increased confidence threshold
-            'iou': 0.45,  # Added IoU threshold for NMS
+            'threshold': 0.4,  # Increased confidence threshold
+            'iou': 0.7,  # Added IoU threshold for NMS
             'description': 'General object recognition (COCO dataset - 80 classes)'
         }
     },
@@ -40,8 +40,8 @@ MODEL_CONFIG = {
         'yolo11s_military': {
             'model_path': os.path.join(MODELS_ROOT, 'yolo11s-military.pt'),
             'type': 'ultralytics',
-            'threshold': 0.35,  # Higher confidence for more precise military detections
-            'iou': 0.40,  # IoU threshold for NMS
+            'threshold': 0.4,  # Higher confidence for more precise military detections
+            'iou': 0.4,  # IoU threshold for NMS
             'description': 'Military objects detection (specialized model)',
             'classes': [
                 'camouflage_soldier', 'weapon', 'military_tank', 'military_truck', 

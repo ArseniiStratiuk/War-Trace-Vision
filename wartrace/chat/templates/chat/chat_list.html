@@ -7,22 +7,180 @@
     
     <div class="chat-list">
         {% for chat in chats %}
-        <a href="{% url 'chat:chat_detail' chat.id %}" class="chat-item">
+        <a href="{% url 'chat:chat_detail' chat.id %}" class="chat-item {% if chat.has_unread %}unread{% endif %}">
             <div class="chat-info">
-                <h3>{{ chat.request.name }}</h3>
-                <p>{{ chat.request.category }}</p>
+                <div class="chat-header">
+                    <h3>{{ chat.request.name }}</h3>
+                    {% if chat.has_unread %}
+                    <span class="unread-badge"></span>
+                    {% endif %}
+                </div>
+                <p class="chat-category">{{ chat.request.category }}</p>
                 {% if chat.messages.last %}
-                <p class="last-message">{{ chat.messages.last.text|truncatechars:50 }}</p>
+                <p class="last-message">
+                    {% if chat.messages.last.sender == request.user %}
+                    <span class="sender">Ви:</span>
+                    {% else %}
+                    <span class="sender">{{ chat.messages.last.sender.username }}:</span>
+                    {% endif %}
+                    {{ chat.messages.last.text|truncatechars:50 }}
+                </p>
                 <p class="message-time">{{ chat.messages.last.timestamp|timesince }} тому</p>
+                {% else %}
+                <p class="no-messages">Немає повідомлень</p>
                 {% endif %}
             </div>
-            {% if chat.messages.filter(is_read=False).exclude(sender=request.user).exists %}
-            <span class="unread-badge"></span>
-            {% endif %}
+            <div class="chat-status-indicator">
+                <span class="status-circle status-{{ chat.request.status }}"></span>
+            </div>
         </a>
         {% empty %}
-        <p>У вас поки немає чатів</p>
+        <div class="no-chats">
+            <p>У вас поки немає чатів</p>
+            <a href="{% url 'volunteer_app:search' %}" class="search-button">Шукати запити</a>
+        </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .chat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .chat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.2s ease;
+    }
+    
+    .chat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .chat-item.unread {
+        background-color: #f0f7ff;
+        border-left: 3px solid #4CAF50;
+    }
+    
+    .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .chat-info {
+        flex: 1;
+    }
+    
+    .chat-info h3 {
+        margin: 0 0 5px 0;
+        font-size: 16px;
+        color: #333;
+    }
+    
+    .chat-category {
+        font-size: 14px;
+        color: #666;
+        margin: 0 0 10px 0;
+    }
+    
+    .last-message {
+        font-size: 14px;
+        color: #666;
+        margin: 8px 0 5px 0;
+    }
+    
+    .sender {
+        font-weight: bold;
+        color: #555;
+    }
+    
+    .message-time {
+        font-size: 12px;
+        color: #999;
+        margin: 0;
+    }
+    
+    .no-messages {
+        font-style: italic;
+        color: #999;
+    }
+    
+    .unread-badge {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+    }
+    
+    .chat-status-indicator {
+        margin-left: 10px;
+    }
+    
+    .status-circle {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    
+    .status-in_progress {
+        background-color: #1565c0;
+    }
+    
+    .status-done {
+        background-color: #2e7d32;
+    }
+    
+    .status-in_search {
+        background-color: #ff8f00;
+    }
+    
+    .no-chats {
+        text-align: center;
+        padding: 30px;
+        color: #777;
+    }
+    
+    .search-button {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 8px 20px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    
+    .search-button:hover {
+        background-color: #3d8b40;
+    }
+</style>
 {% endblock %}
