@@ -69,7 +69,7 @@ def personal_page(request):
         'socials_link': contacts.get('socials', {}).get('link', ''),
     })
     # Fetch markers created by the current user
-    my_markers = Marker.objects.filter(user=request.user).order_by('-created_at')
+    my_markers = request.user.markers.all()
 
     if request.method == 'POST':
         if 'name' in request.POST:  # Request Form submitted
@@ -91,7 +91,7 @@ def personal_page(request):
                 }
                 user_profile.set_contacts(contacts)
                 user_profile.save()
-                return redirect('personal_page')    
+                return redirect('personal_page')
 
     return render(request, 'personal_page.html', {'contacts': contacts, 'request_data': request_data, 'request_form': request_form, 'contact_form': contact_form, 'my_markers': my_markers, 'both_request_data':both_request_data})
 
@@ -112,7 +112,9 @@ def profile(request, volunteer_id):
         request_data = request_data.order_by('-id')
         both_request_data = None
     visitor = request.user.profile
-    return render(request, 'profile.html', {'user':user_profile.user, 'contacts':user_profile.get_contacts(), 'request_data': request_data, 'visitor':visitor, 'both_request_data':both_request_data})
+    markers = user_profile.user.markers.filter(visibility='public')
+    print(markers)
+    return render(request, 'profile.html', {'user':user_profile.user, 'contacts':user_profile.get_contacts(), 'request_data': request_data, 'visitor':visitor, 'both_request_data':both_request_data, 'markers':markers})
 
 @login_required
 def req_ready(request, req_id):

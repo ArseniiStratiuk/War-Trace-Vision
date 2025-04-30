@@ -74,6 +74,14 @@
         {% elif not both_request_data %}
         <p>Ще нема запитів.</p>
         {% endif %}
+        <h2>Маркери</h2>
+            {% if markers %}
+            {% for marker in markers %}
+            <a href="{% url 'content:marker_detail' marker.id %}">{{marker.title}}</a><br>
+            {% endfor %}
+            {% else %}
+            <p>Ще немає маркерів.</p>
+            {% endif %}
         </div>
     </main>
 
