@@ -112,8 +112,10 @@ def profile(request, volunteer_id):
         request_data = request_data.order_by('-id')
         both_request_data = None
     visitor = request.user.profile
-    markers = user_profile.user.markers.filter(visibility='public')
-    print(markers)
+    if request.user.is_staff:
+        markers = user_profile.user.markers.filter(visibility__in=['public', 'verified_only'])
+    else:
+        markers = user_profile.user.markers.filter(visibility='public')
     return render(request, 'profile.html', {'user':user_profile.user, 'contacts':user_profile.get_contacts(), 'request_data': request_data, 'visitor':visitor, 'both_request_data':both_request_data, 'markers':markers})
 
 @login_required
