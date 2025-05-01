@@ -1,0 +1,114 @@
+:root {
+    --primary-color: #0050b3;
+    --primary-light: #e6f0ff;
+    --primary-dark: #003a8c;
+    --text-color: #333;
+    --text-secondary: #777;
+    --card-color: #fff;
+    --background-color: #f5f5f5;
+    --border-radius: 12px;
+    --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --divider-color: #ddd;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 20px;
+    color: var(--text-color);
+}
+
+.chat-detail-container {
+    background-color: var(--card-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    max-width: 700px;
+    margin: auto;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.back-button {
+    font-size: 24px;
+    text-decoration: none;
+    color: var(--primary-dark);
+    font-weight: bold;
+}
+
+.messages-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #f0f0f0;
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.message {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 15px;
+    max-width: 70%;
+    word-wrap: break-word;
+    position: relative;
+}
+
+.message.sent {
+    background-color: var(--primary-light);
+    margin-left: auto;
+    border: 1px solid var(--primary-color);
+}
+
+.message.received {
+    background-color: #eeeeee;
+    margin-right: auto;
+    border: 1px solid #ccc;
+}
+
+.message-time {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    text-align: right;
+}
+
+.message-form {
+    display: flex;
+    gap: 10px;
+}
+
+.message-form textarea,
+.message-form input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--divider-color);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+}
+
+.send-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+    background-color: var(--primary-dark);
+}
