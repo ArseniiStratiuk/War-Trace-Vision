@@ -102,6 +102,15 @@
             {% elif not both_request_data %}
             <p>Ще нема запитів.</p>
             {% endif %}
+
+            <h2>Мої маркери</h2>
+            {% if my_markers %}
+            {% for marker in my_markers %}
+            <a href="{% url 'content:marker_detail' marker.id %}">{{marker.title}}</a><br>
+            {% endfor %}
+            {% else %}
+            <p>Ще немає маркерів.</p>
+            {% endif %}
         </div>
 
         <form method="post" action="{% url 'logout' %}">
