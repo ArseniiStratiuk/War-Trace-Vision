@@ -15,6 +15,8 @@
 
 **War Trace Vision** is an online platform for documenting war-related destruction using both AI-powered analysis and user collaboration. The system processes uploaded by users imagery to detect people, vehicles, weapons and other objects of interest with deep learning (YOLO) and OpenCV. Users can manually describe, and comment detected areas, ensuring comprehensive documentation. Built with Django and an interactive Leaflet map, the project aims to support humanitarian missions, post-war reconstruction, and historical records by combining Computer Vision with community-driven verification.
 
+**Video Demo:** [War Trace Vision - YouTube](https://youtu.be/kBxrOsKbwO4)
+
 **Live Deployment:** [war-trace-vision.onrender.com](https://war-trace-vision.onrender.com/) (suspended)
 
 **Key Technologies:** Python, Django, JavaScript, Leaflet.js, HTML, CSS, YOLO, OpenCV, SQLite
