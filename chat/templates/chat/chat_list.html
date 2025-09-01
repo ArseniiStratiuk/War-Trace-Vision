@@ -1,0 +1,53 @@
+
+{% load static %}
+
+{% block content %}
+<h2>Історія чатів</h2>
+
+<div class="chat-list">
+    {% if chats %}
+        {% for chat in chats %}
+            <div class="chat-item">
+                <div class="chat-header">
+                    <div class="chat-title">{{ chat.request.name }}</div>
+                    {% if chat.messages.last %}
+                        <div class="chat-date">{{ chat.messages.last.timestamp|date:"d.m.Y H:i" }}</div>
+                    {% endif %}
+                </div>
+                <div class="chat-meta">
+                    <span class="chat-status status-{{ chat.request.status }}">
+                        {% if chat.request.status == 'in_progress' %} В процесі
+                        {% elif chat.request.status == 'done' %} Виконано
+                        {% elif chat.request.status == 'in_search' %} В пошуку
+                        {% endif %}
+                    </span>
+                    {% if chat.request.urgency %}
+                        <span class="chat-urgency urgency-{{ chat.request.urgency }}">
+                            Терміновість: {{ chat.request.urgency }}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="chat-preview">
+                    {% with last_message=chat.messages.last %}
+                        {% if last_message %}
+                            <strong>{{ last_message.sender.username }}:</strong> {{ last_message.text|truncatechars:100 }}
+                        {% else %}
+                            Немає повідомлень
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="chat-actions">
+                    <a href="{% url 'chat:chat_detail' chat.id %}" class="view-chat">Переглянути чат</a>
+                    {% if chat.messages.filter(is_read=False).exclude(sender=request.user).exists %}
+                        <span class="unread-badge"></span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-chats">
+            <p>У вас поки немає чатів</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

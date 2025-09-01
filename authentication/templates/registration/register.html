@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Зареєструватись</h1>
+
+        {% if form.non_field_errors %}
+            <div class="error-message">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+
+            <div class="form-field">
+                {{ form.username.errors }}
+                {{ form.username }}
+            </div>
+            <div class="form-field">
+                {{ form.email.errors }}
+                {{ form.email }}
+            </div>
+            <div class="form-field">
+                {{ form.first_name.errors }}
+                {{ form.first_name }}
+            </div>
+            <div class="form-field">
+                {{ form.last_name.errors }}
+                {{ form.last_name }}
+            </div>
+            <div class="form-field">
+                {{ form.password.errors }}
+                {{ form.password }}
+            </div>
+            <div class="form-field">
+                {{ form.password2.errors }}
+                {{ form.password2 }}
+            </div>
+            <div class="form-field">
+                {{ form.category.errors }}
+                {{ form.category }}
+                <small>{{ form.category.help_text }}</small>
+            </div>
+
+            <button type="submit" class="login-button">Зареєструватись</button>
+        </form>
+
+        <div class="form-options">
+            <span>Вже маєте акаунт?</span>
+            <a href="{% url 'login' %}" class="forgot-link">Ввійти</a>
+        </div>
+    </div>
+</body>
+</html>
